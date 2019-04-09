@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Smart Dispatch</string>
+    <string name="google_map_api_key">AIzaSyDh_ITkfYCjHSuenghAYpSxfgHwuJjDY-o</string>
+
+    <!-- Firestore Strings -->
+    <string name="collection_users">Users</string>
+    <string name="collection_user_locations">User Locations</string>
+    <string name="intent_user_list">intent_user_list</string>
+    <string name="intent_user_locations">intent_user_locations</string>
+
+    <string name="acra_toast_text">Sorry, the application crashed. A report will be sent to the developers</string>
+
+    <string name="setting_up">Setting Up</string>
+    <string name="internet_not_connected">Internet: Not Connected</string>
+    <string name="gps_not_connected">GPS: Not Connected</string>
+    <string name="internet_connected">Internet: Connected</string>
+    <string name="gps_connected">GPS: Connected</string>
+
+</resources>

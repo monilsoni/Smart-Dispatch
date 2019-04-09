@@ -1,0 +1,107 @@
+{
+  "project_info": {
+    "project_number": "307949654917",
+    "firebase_url": "https://smartdispatch-auth.firebaseio.com",
+    "project_id": "smartdispatch-auth",
+    "storage_bucket": "smartdispatch-auth.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307949654917:android:1c2cf71f0be8285b",
+        "android_client_info": {
+          "package_name": "com.example.smartdispatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "307949654917-lghre6g6mklq734j8agpvfmjcd731npe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smartdispatch",
+            "certificate_hash": "200168c813a968baddffa09094097edbdbec7289"
+          }
+        },
+        {
+          "client_id": "307949654917-dsmt16qh487aq8akv0m5mmuaiqmri5g8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKhq_EN49oBJ0JM9cX4ylS6rgjQ3kca4Y"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "307949654917-dsmt16qh487aq8akv0m5mmuaiqmri5g8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307949654917:android:dec96f48e7bc0b0a",
+        "android_client_info": {
+          "package_name": "com.example.smartdispatch_auth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "307949654917-k0j55m6nhpelvn92i3at53bv1ve47mbm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smartdispatch_auth",
+            "certificate_hash": "9f83af69b7c8ef186c0375ae957ca50f2444e586"
+          }
+        },
+        {
+          "client_id": "307949654917-r54c0b65a3nqkk9ehheakuit1boop5o2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smartdispatch_auth",
+            "certificate_hash": "21b422e071abb092cf75051dd2824fc67750fca1"
+          }
+        },
+        {
+          "client_id": "307949654917-dsmt16qh487aq8akv0m5mmuaiqmri5g8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKhq_EN49oBJ0JM9cX4ylS6rgjQ3kca4Y"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "307949654917-dsmt16qh487aq8akv0m5mmuaiqmri5g8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

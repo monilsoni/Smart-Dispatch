@@ -1,0 +1,53 @@
+package com.example.smartdispatch_auth.UI;
+
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+
+import com.example.smartdispatch_auth.R;
+
+
+public class EntryPoint extends AppCompatActivity implements View.OnClickListener {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_entry_point);
+
+        findViewById(R.id.user_login_button).setOnClickListener(this);
+        findViewById(R.id.vehicle_login_button).setOnClickListener(this);
+        findViewById(R.id.hospital_login_button).setOnClickListener(this);
+        findViewById(R.id.admin_login_button).setOnClickListener(this);
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
+
+        switch (v.getId()) {
+            case R.id.user_login_button: {
+                intent.putExtra("authenticator", "user");
+                startActivity(intent);
+                break;
+            }
+            case R.id.vehicle_login_button: {
+                intent.putExtra("authenticator", "vehicle");
+                startActivity(intent);
+                break;
+            }
+            case R.id.hospital_login_button: {
+                intent.putExtra("authenticator", "hospital");
+                startActivity(intent);
+                break;
+            }
+            case R.id.admin_login_button: {
+                intent.putExtra("authenticator", "admin");
+                startActivity(intent);
+                break;
+            }
+        }
+
+    }
+}
