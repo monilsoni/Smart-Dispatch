@@ -147,6 +147,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 Intent intent = new Intent(UserMainActivity.this, MapActivity.class);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_list), mUserList);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_locations), mUserLocations);
+                intent.putExtra("user_location", mUserLocation);
                 startActivity(intent);
                 break;
             }

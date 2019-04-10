@@ -101,7 +101,7 @@ public class MapActivity extends AppCompatActivity implements
             final ArrayList<UserLocation> locations = intent.getParcelableArrayListExtra(getString(R.string.intent_user_locations));
             mUserLocations.addAll(locations);
 
-            setUserPosition();
+            mUserPosition = intent.getParcelableExtra("user_location");
         }
 
 
@@ -399,16 +399,6 @@ public class MapActivity extends AppCompatActivity implements
         );
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, 0));
-
-    }
-
-    private void setUserPosition() {
-        for (UserLocation userLocation : mUserLocations) {
-            if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
-                mUserPosition = userLocation;
-                break;
-            }
-        }
 
     }
 
