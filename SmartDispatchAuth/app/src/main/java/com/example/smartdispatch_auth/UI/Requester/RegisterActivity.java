@@ -48,7 +48,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     }
 
-    public void registerNewEmail(final String email, String password, final String aadhar_number, final String phone_number) {
+    public void registerNewEmail(final String email, String password, final String aadhar_number, final String phone_number, final String name, final String sex, final String age) {
 
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -56,7 +56,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
 
-                            User user = new User(email, FirebaseAuth.getInstance().getUid(), aadhar_number, phone_number);
+                            User user = new User(email, FirebaseAuth.getInstance().getUid(), aadhar_number, phone_number, name, sex, age);
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection(getString(R.string.collection_users))
@@ -103,6 +103,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 aadhar_number = mAadharNumber.getText().toString();
                 phone_number = mPhoneNumber.getText().toString();
 
+                String name = "monil soni";
+                String sex = "male";
+                String age = "20";
                 //check for null valued EditText fields
                 if(!isEmpty(email)
                         && !isEmpty(password)
@@ -115,7 +118,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         //Initiate registration task
                         Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
                         Utilities.showDialog(mProgressBar);
-                        registerNewEmail(email, password, aadhar_number, phone_number);
+                        registerNewEmail(email, password, aadhar_number, phone_number, name, sex, age);
                     }else{
                         Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                     }

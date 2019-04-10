@@ -36,6 +36,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.8' // Core
     implementation 'com.google.firebase:firebase-auth:16.2.1' // Authentication
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+
     // Location and Activity Recognition
     implementation 'com.google.android.gms:play-services-maps:16.1.0' // Maps
     implementation 'com.google.firebase:firebase-firestore:18.2.0' // Firestore

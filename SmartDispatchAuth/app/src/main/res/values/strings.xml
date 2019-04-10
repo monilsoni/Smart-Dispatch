@@ -5,6 +5,10 @@
     <!-- Firestore Strings -->
     <string name="collection_users">Users</string>
     <string name="collection_user_locations">User Locations</string>
+    <string name="collection_vehicles">Vehicles</string>
+    <string name="collection_vehicle_locations">Vehicle Locations</string>
+    <string name="collection_hospital">Hospital</string>
+
     <string name="intent_user_list">intent_user_list</string>
     <string name="intent_user_locations">intent_user_locations</string>
 

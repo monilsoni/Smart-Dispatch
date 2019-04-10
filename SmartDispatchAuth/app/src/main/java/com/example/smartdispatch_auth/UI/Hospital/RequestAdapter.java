@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth.Utils;
+package com.example.smartdispatch_auth.UI.Hospital;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Request;
+import com.example.smartdispatch_auth.Models.RequestDisp;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,11 +32,13 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
     }
 
     private Context context ;
-    private List<Request> requestList;
+    private List<RequestDisp> requestList;
+    private List<Request> requests;
 
-    public RequestAdapter(Context context, List<Request> requestList) {
+    public RequestAdapter(Context context, List<RequestDisp> requestList, List<Request> requests) {
         this.context = context;
         this.requestList = requestList;
+        this.requests = requests;
     }
 
     @NonNull
@@ -47,7 +51,10 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Todo: Open LiveTracking Map here
+                Intent intent = new Intent(context, HospitalMapActivity.class);
+                intent.putExtra("request", requests.get(i));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
                 Toast.makeText(getContext(), requestViewHolder.usrname.getText().toString(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -57,7 +64,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
     @Override
     public void onBindViewHolder(@NonNull RequestViewHolder requestViewHolder, int i) {
 
-        final Request request = requestList.get(i);
+        final RequestDisp request = requestList.get(i);
 
         requestViewHolder.usrname.setText(request.getUsrname());
         requestViewHolder.usrage.setText(request.getUsrage());
@@ -82,9 +89,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                     i.putExtra("index", i);
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(i);
 
-                    FirebaseFirestore.getInstance().collection("Hospital")
-                            .document("Hospital1")
-                            .collection("requests")
+                    FirebaseFirestore.getInstance().collection("Requests")
                             .whereEqualTo("usrname", request.getUsrname()).get()
                             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                 @Override

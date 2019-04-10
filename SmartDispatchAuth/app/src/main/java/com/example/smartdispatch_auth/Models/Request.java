@@ -1,40 +1,82 @@
 package com.example.smartdispatch_auth.Models;
 
-public class Request {
+import android.os.Parcel;
+import android.os.Parcelable;
 
-    private String usrname, drivername, contactno, vehicleno, usrage, usrsex;
+public class Request implements Parcelable {
 
-    public Request(String usrname, String usrage, String usrsex, String drivername, String contactno, String vehicleno){
+    public static final Creator<Request> CREATOR = new Creator<Request>() {
+        @Override
+        public Request createFromParcel(Parcel in) {
+            return new Request(in);
+        }
 
-        this.usrname = usrname;
-        this.usrage = usrage;
-        this.usrsex = usrsex;
-        this.drivername = drivername;
-        this.contactno = contactno;
-        this.vehicleno = vehicleno;
+        @Override
+        public Request[] newArray(int size) {
+            return new Request[size];
+        }
+    };
+    private UserLocation userLocation;
+    private VehicleLocation vehicleLocation;
+    private Hospital hospital;
+
+    protected Request(Parcel in) {
+        userLocation = in.readParcelable(UserLocation.class.getClassLoader());
+        vehicleLocation = in.readParcelable(VehicleLocation.class.getClassLoader());
+        hospital = in.readParcelable(Hospital.class.getClassLoader());
     }
 
-    public String getDrivername() {
-        return drivername;
+    public Request() {
     }
 
-    public String getUsrname() {
-        return usrname;
+    public Request(UserLocation userLocation, VehicleLocation vehicleLocation, Hospital hospital) {
+        this.userLocation = userLocation;
+        this.vehicleLocation = vehicleLocation;
+        this.hospital = hospital;
     }
 
-    public String getContactno() {
-        return contactno;
+    @Override
+    public String toString() {
+        return "Request{" +
+                "userLocation=" + userLocation +
+                ", vehicleLocation=" + vehicleLocation +
+                ", hospital=" + hospital +
+                '}';
     }
 
-    public String getVehicleno() {
-        return vehicleno;
+    public UserLocation getUserLocation() {
+        return userLocation;
     }
 
-    public String getUsrage() {
-        return usrage;
+    public void setUserLocation(UserLocation userLocation) {
+        this.userLocation = userLocation;
     }
 
-    public String getUsrsex() {
-        return usrsex;
+    public VehicleLocation getVehicleLocation() {
+        return vehicleLocation;
+    }
+
+    public void setVehicleLocation(VehicleLocation vehicleLocation) {
+        this.vehicleLocation = vehicleLocation;
+    }
+
+    public Hospital getHospital() {
+        return hospital;
+    }
+
+    public void setHospital(Hospital hospital) {
+        this.hospital = hospital;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(userLocation, flags);
+        dest.writeParcelable(vehicleLocation, flags);
+        dest.writeParcelable(hospital, flags);
     }
 }

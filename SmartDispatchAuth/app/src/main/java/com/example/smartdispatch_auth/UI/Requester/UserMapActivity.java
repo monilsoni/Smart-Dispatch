@@ -60,7 +60,7 @@ public class UserMapActivity extends AppCompatActivity implements
 
     // Todo: Firestore offline feature!
 
-    private static final String TAG = "UserUserMapActivity";
+    private static final String TAG = "UserMapActivity";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     // widgets

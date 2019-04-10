@@ -39,6 +39,7 @@ public class SetUpActivity extends AppCompatActivity {
 
     // widgets
     private TextView internetCheck, gpsCheck;
+    IntentFilter filter;
 
     // vars
     private boolean mLocationPermissionGranted = false;
@@ -54,7 +55,7 @@ public class SetUpActivity extends AppCompatActivity {
         gpsCheck = findViewById(R.id.gps_check);
 
 
-        IntentFilter filter = new IntentFilter();
+        filter = new IntentFilter();
         filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(LocationManager.MODE_CHANGED_ACTION);
@@ -134,6 +135,11 @@ public class SetUpActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     private boolean checkMapServices() {

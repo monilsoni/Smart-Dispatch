@@ -13,14 +13,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Request;
+import com.example.smartdispatch_auth.Models.RequestDisp;
+import com.example.smartdispatch_auth.Models.User;
+import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Utils.RequestAdapter;
+import com.example.smartdispatch_auth.UI.LoginActivity;
+import com.example.smartdispatch_auth.UI.Requester.RegisterActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -34,7 +44,8 @@ public class HospitalMainActivity extends AppCompatActivity {
     TextView emptyListMessage;
     ProgressBar mProgressBar;
     // vars
-    List<Request> requestList;
+    List<RequestDisp> requestList;
+    List<Request> requests;
     RequestAdapter adapter;
     int recurrentRead = 0;
     private android.support.v7.widget.RecyclerView recyclerView;
@@ -44,6 +55,7 @@ public class HospitalMainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             int k = intent.getIntExtra("index", 0);
             requestList.remove(k);
+            requests.remove(k);
             adapter.notifyDataSetChanged();
             if (requestList.size() == 0) {
 
@@ -56,53 +68,9 @@ public class HospitalMainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-
-            ArrayList<String> list = intent.getStringArrayListExtra("Data");
-            String usrname = "hey", usrage = "hey", usrsex = "hey", drivername = "hey", contactno = "hey", vehicleno = "hey";
-            for (int i = 0; i < 12; i += 2) {
-                String value = list.get(i);
-                switch (value) {
-                    case "usrname":
-                        usrname = list.get(i + 1);
-                        break;
-
-                    case "usrage":
-                        usrage = list.get(i + 1);
-                        break;
-
-                    case "usrsex":
-                        usrsex = list.get(i + 1);
-                        break;
-
-                    case "drivername":
-                        drivername = list.get(i + 1);
-                        break;
-
-                    case "contactno":
-                        contactno = list.get(i + 1);
-                        break;
-
-                    case "vehicleno":
-                        vehicleno = list.get(i + 1);
-                        break;
-
-                }
-
-            }
-
-
-            if (emptyListMessage.getVisibility() == View.VISIBLE) {
-
-                requestList.clear();
-                requestList.add(new Request(usrname, usrage, usrsex, drivername, contactno, vehicleno));
-                updateList();
-
-            } else {
-                requestList.add(new Request(usrname, usrage, usrsex, drivername, contactno, vehicleno));
-                adapter.notifyDataSetChanged();
-            }
-
+            updateUI(null);
         }
+
     };
 
     private void updateList() {
@@ -112,7 +80,7 @@ public class HospitalMainActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new RequestAdapter(getApplicationContext(), requestList);
+        adapter = new RequestAdapter(getApplicationContext(), requestList, requests);
         recyclerView.setAdapter(adapter);
     }
 
@@ -134,13 +102,15 @@ public class HospitalMainActivity extends AppCompatActivity {
     }
 
     private void updateUI(FirebaseUser user) {
+        Utilities.showDialog(mProgressBar);
         recurrentRead = 0;
         requestList = new ArrayList<>();
+        requests = new ArrayList<>();
+        requests.clear();
         requestList.clear();
 
-        FirebaseFirestore.getInstance().collection("Hospital")
-                .document("Hospital1")
-                .collection("requests").get()
+        FirebaseFirestore.getInstance().collection("Requests")
+                .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -148,16 +118,71 @@ public class HospitalMainActivity extends AppCompatActivity {
                         if (recurrentRead == 1) {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
-                                    requestList.add(
-                                            new Request(
-                                                    document.getData().get("usrname").toString(),
-                                                    document.getData().get("usrage").toString(),
-                                                    document.getData().get("usrsex").toString(),
-                                                    document.getData().get("drivername").toString(),
-                                                    document.getData().get("contactno").toString(),
-                                                    document.getData().get("vehicleno").toString()
-                                            )
-                                    );
+                                    Request request = document.toObject(Request.class);
+                                    if (true){
+                                        User usr = request.getUserLocation().getUser();
+                                        Vehicle v = request.getVehicleLocation().getVehicle();
+                                        String usrname = usr.getName(), usrage = usr.getAge(), usrsex = usr.getSex();
+                                        String drivername = v.getDriver_name(), contactno = v.getPhone_number(), vehicleno = v.getVehicle_number();
+                                        requestList.add(new RequestDisp(usrname, usrage, usrsex, drivername, contactno, vehicleno));
+                                        requests.add(request);
+
+                                        DocumentReference newUserRef = FirebaseFirestore.getInstance()
+                                                .collection(getString(R.string.collection_vehicles))
+                                                .document(request.getVehicleLocation().getVehicle().getVehicle_id());
+
+                                        newUserRef.set(request.getVehicleLocation().getVehicle()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                if(task.isSuccessful()) {
+                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                                }else if(task.getException() != null){
+                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                }else{
+                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+
+                                        newUserRef = FirebaseFirestore.getInstance()
+                                                .collection(getString(R.string.collection_vehicle_locations))
+                                                .document(request.getVehicleLocation().getVehicle().getVehicle_id());
+
+                                        newUserRef.set(request.getVehicleLocation()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                if(task.isSuccessful()) {
+                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                                }else if(task.getException() != null){
+                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                }else{
+                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+
+                                        newUserRef = FirebaseFirestore.getInstance()
+                                                .collection(getString(R.string.collection_hospital))
+                                                .document(request.getHospital().getHospital_id());
+
+                                        newUserRef.set(request.getHospital()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                if(task.isSuccessful()) {
+                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                                }else if(task.getException() != null){
+                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                }else{
+                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+
+
+                                    }
                                     Log.d("data", document.getId() + " => " + document.getData());
 
                                 }
@@ -182,8 +207,6 @@ public class HospitalMainActivity extends AppCompatActivity {
         super.onResume();
 
         emptyListMessage.setVisibility(View.INVISIBLE);
-
-        Utilities.showDialog(mProgressBar);
         updateUI(null);
     }
 
