@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth;
+package com.example.smartdispatch_auth.Utils;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -17,8 +17,8 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.EntryPoint;
-import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -161,7 +161,7 @@ public class SetUpActivity extends AppCompatActivity {
         }
 
 
-        if(gpsState && internetState){
+        if(mLocationPermissionGranted && gpsState && internetState){
             Intent intent = new Intent(SetUpActivity.this, EntryPoint.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);

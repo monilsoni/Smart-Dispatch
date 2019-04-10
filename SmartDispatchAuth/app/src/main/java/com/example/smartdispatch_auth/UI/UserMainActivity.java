@@ -25,8 +25,8 @@ import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.UserLocation;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
-import com.example.smartdispatch_auth.SetUpActivity;
 import com.example.smartdispatch_auth.UserClient;
+import com.example.smartdispatch_auth.Utils.SetUpActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -62,6 +62,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private ProgressBar mProgressBar;
 
     // Variables
+    private boolean mLocationPermissionGranted = false;
     private ListenerRegistration mUserListEventListener;
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
@@ -83,8 +84,8 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.look_at_map).setOnClickListener(this);
         findViewById(R.id.sign_out).setOnClickListener(this);
 
-        getUserDetails();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        getUserDetails();
     }
 
     /*  GPS Service  */
@@ -182,33 +183,27 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation called.");
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
 
         /* The get Last Location method may return null if it has not been a long time since the app started. */
 
-        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "getLastLocation: Successful.");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "getLastLocation: Successful.");
 
-
-                    Location mLocation = task.getResult();
-                    GeoPoint geoPoint = null;
-                    try{
-                        geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
-                    }catch (NullPointerException e){
-                        Log.d(TAG, "getLastKnownLocation: mLocation is null.");
-                    }
-                    mUserLocation.setGeoPoint(geoPoint);
-                    mUserLocation.setTimeStamp(null);
-                    saveUserLocation();
-                    startLocationService();
+                Location mLocation = task.getResult();
+                GeoPoint geoPoint = null;
+                try {
+                    geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
+                } catch (NullPointerException e) {
+                    Log.d(TAG, "getLastKnownLocation: mLocation is null.");
                 }
+                mUserLocation.setGeoPoint(geoPoint);
+                mUserLocation.setTimeStamp(null);
+                saveUserLocation();
+                startLocationService();
             }
         });
     }
@@ -313,7 +308,5 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         mLocationText.setText("Latitude: " + mUserLocation.getGeoPoint().getLatitude() + ", Longitude: " + mUserLocation.getGeoPoint().getLongitude());
         set = true;
     }
-
-
 }
 
