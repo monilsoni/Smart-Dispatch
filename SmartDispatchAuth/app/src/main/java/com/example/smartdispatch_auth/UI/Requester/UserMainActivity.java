@@ -59,7 +59,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_user_main);
 
         mWelcomeText = findViewById(R.id.welcome);
         mLocationText = findViewById(R.id.location);
@@ -130,7 +130,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                     break;
                 }
 
-                Intent intent = new Intent(UserMainActivity.this, MapActivity.class);
+                Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_list), mUserList);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_locations), mUserLocations);
                 intent.putExtra("user_location", mUserLocation);

@@ -69,6 +69,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                     if(task.isSuccessful()) {
                                         Utilities.hideDialog(mProgressBar); // Since we're going to change the activity
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                        intent.putExtra("authenticator", "user");
                                         startActivity(intent);
                                         finish();
                                     }else if(task.getException() != null){

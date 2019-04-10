@@ -46,7 +46,7 @@ public class HospitalMainActivity extends AppCompatActivity {
             requestList.remove(k);
             adapter.notifyDataSetChanged();
             if (requestList.size() == 0) {
-                TextView emptyListMessage = findViewById(R.id.empty_list_message);
+
                 emptyListMessage.setVisibility(View.VISIBLE);
             }
         }

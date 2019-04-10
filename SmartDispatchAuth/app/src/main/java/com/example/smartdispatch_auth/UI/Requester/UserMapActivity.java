@@ -15,8 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.ClusterMarker;
@@ -45,7 +43,6 @@ import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.view.ClusterRenderer;
 import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
@@ -55,7 +52,7 @@ import java.util.List;
 
 import static com.example.smartdispatch_auth.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MapActivity extends AppCompatActivity implements
+public class UserMapActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         View.OnClickListener,
         GoogleMap.OnInfoWindowClickListener,
@@ -63,7 +60,7 @@ public class MapActivity extends AppCompatActivity implements
 
     // Todo: Firestore offline feature!
 
-    private static final String TAG = "MapActivity";
+    private static final String TAG = "UserUserMapActivity";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     // widgets
@@ -89,7 +86,7 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        setContentView(R.layout.activity_user_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
 
 
