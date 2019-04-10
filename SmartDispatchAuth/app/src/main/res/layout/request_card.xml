@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/listlayout"
+    android:orientation="vertical"
+    android:background="#EEE">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="7dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FF0000">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Vehicle Details"
+                    android:textAlignment="center"
+                    android:padding="10dp"
+                    android:textSize="14dp"
+                    android:textColor="#FFF"
+                    android:background="#FF0000"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingBottom="5dp">
+
+                    <TextView
+                        android:id="@+id/drivernameTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Driver Name : "
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/drivername"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingVertical="5dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/contactnoTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Contact No. : "
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/contactno"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/vehiclenoTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Vehicle No. : "
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/vehicleno"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="User Details"
+                    android:textAlignment="center"
+                    android:padding="10dp"
+                    android:textSize="14dp"
+                    
+                    android:textColor="#FF0000"
+                    android:translationZ="5dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingBottom="5dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/usrnameTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Name : "
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/usrname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp">
+
+                    <TextView
+                        android:id="@+id/usrageTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Age : "
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/usrage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/usrsexTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Sex : "
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"
+                        android:layout_marginStart="20dp"/>
+
+                    <TextView
+                        android:id="@+id/usrsex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="#F04C4C"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/endrequestButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginVertical="10dp"
+                    android:background="#FF6500"
+                    android:text="end request"
+                    android:textColor="#FFF"
+                    android:textSize="13dp"
+                    android:paddingHorizontal="10dp"
+                    android:layout_gravity="end" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+</RelativeLayout>

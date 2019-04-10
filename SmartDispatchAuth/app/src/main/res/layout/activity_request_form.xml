@@ -85,7 +85,7 @@
                         android:layout_marginLeft="15dp"
                         android:layout_marginTop="13dp"
                         android:layout_weight="1"
-                        android:fontFamily="serif"
+                        
                         android:text="Type Of Emergency"
                         android:textColor="#FFF"
                         android:textSize="14dp" />
@@ -188,7 +188,7 @@
                         android:layout_marginLeft="15dp"
                         android:layout_marginTop="13dp"
                         android:layout_weight="1"
-                        android:fontFamily="serif"
+                        
                         android:text="Severity"
                         android:textColor="#FFF"
                         android:textSize="14dp" />

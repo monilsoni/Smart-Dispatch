@@ -22,6 +22,7 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
         findViewById(R.id.hospital_login_button).setOnClickListener(this);
         findViewById(R.id.admin_login_button).setOnClickListener(this);
 
+        /*
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user != null){
             Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
@@ -39,14 +40,13 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
             startActivity(intent);
             finish();
 
-        }
+        }*/
     }
 
 
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         switch (v.getId()) {
             case R.id.user_login_button: {
