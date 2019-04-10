@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.example.smartdispatch_auth.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class EntryPoint extends AppCompatActivity implements View.OnClickListener {
@@ -19,12 +21,32 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
         findViewById(R.id.vehicle_login_button).setOnClickListener(this);
         findViewById(R.id.hospital_login_button).setOnClickListener(this);
         findViewById(R.id.admin_login_button).setOnClickListener(this);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user != null){
+            Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            String email = user.getEmail();
+            if(email.contains("@smartdispatch.gov.in")){
+               if(email.contains("v_"))
+                   intent.putExtra("authenticator", "vehicle");
+               else
+                   intent.putExtra("authenticator", "hospital");
+            }else{
+                intent.putExtra("authenticator", "user");
+            }
+            startActivity(intent);
+            finish();
+
+        }
     }
 
 
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         switch (v.getId()) {
             case R.id.user_login_button: {

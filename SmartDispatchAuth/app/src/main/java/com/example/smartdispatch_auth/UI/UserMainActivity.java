@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,7 +63,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private ProgressBar mProgressBar;
 
     // Variables
-    private boolean mLocationPermissionGranted = false;
     private ListenerRegistration mUserListEventListener;
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
@@ -83,6 +83,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         findViewById(R.id.look_at_map).setOnClickListener(this);
         findViewById(R.id.sign_out).setOnClickListener(this);
+        findViewById(R.id.submit_request).setOnClickListener(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getUserDetails();
@@ -147,6 +148,13 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_list), mUserList);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_locations), mUserLocations);
                 startActivity(intent);
+                break;
+            }
+
+            case R.id.submit_request: {
+                Intent intent = new Intent(UserMainActivity.this, RequestForm.class);
+                startActivity(intent);
+                break;
             }
         }
     }

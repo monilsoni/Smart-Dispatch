@@ -1,11 +1,14 @@
 package com.example.smartdispatch_auth.Utils;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +24,8 @@ import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import java.util.Set;
 
 import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -47,6 +52,52 @@ public class SetUpActivity extends AppCompatActivity {
 
         internetCheck = findViewById(R.id.internet_check);
         gpsCheck = findViewById(R.id.gps_check);
+
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(LocationManager.MODE_CHANGED_ACTION);
+        filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
+        this.registerReceiver(new CheckConnectivity(), filter);
+
+    }
+
+    public class CheckConnectivity extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+
+            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+            if(!isNotConnected){
+
+                internetState = true;
+                setInternetCheckTrue();
+                if(mLocationPermissionGranted && gpsState && internetState)
+                    startEntryPoint();
+            }
+            else{
+
+                internetState = false;
+                internetAlert = null;
+                Toast.makeText(SetUpActivity.this, "No Internet", Toast.LENGTH_SHORT).show();
+                buildAlertMessageNoInternet();
+            }
+
+
+            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+
+                gpsState = true;
+                setGpsCheckTrue();
+                if(mLocationPermissionGranted && gpsState && internetState)
+                    startEntryPoint();
+
+            }else{
+                gpsState = false;
+                gpsAlert = null;
+                buildAlertMessageNoGps();
+            }
+        }
     }
 
     /* GPS Permissions */
@@ -87,7 +138,7 @@ public class SetUpActivity extends AppCompatActivity {
 
     private boolean checkMapServices() {
         if (isServicesOK()) {
-            return isMapsEnabled();
+            return true;
         }
         return false;
     }
@@ -112,16 +163,6 @@ public class SetUpActivity extends AppCompatActivity {
         return false;
     }
 
-    public boolean isMapsEnabled() {
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-            return false;
-        }
-        return true;
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -129,7 +170,7 @@ public class SetUpActivity extends AppCompatActivity {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if (resultCode == RESULT_OK) {
-                    setGpsCheck();
+                    setGpsCheckTrue();
                 } else {
                     getLocationPermission();
                 }
@@ -137,7 +178,7 @@ public class SetUpActivity extends AppCompatActivity {
 
             case PERMISSIONS_REQUEST_ENABLE_INTERNET: {
                 if (resultCode == RESULT_OK) {
-                    setInternetCheck();
+                    setInternetCheckTrue();
                 }
             }
         }
@@ -153,31 +194,20 @@ public class SetUpActivity extends AppCompatActivity {
             if (!mLocationPermissionGranted) {
                 getLocationPermission();
             }
-            setGpsCheck();
         }
 
-        if (checkInternetServices()) {
-            setInternetCheck();
-        }
+        if(mLocationPermissionGranted && gpsState && internetState)
+            startEntryPoint();
 
-
-        if(mLocationPermissionGranted && gpsState && internetState){
-            Intent intent = new Intent(SetUpActivity.this, EntryPoint.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        }
     }
 
     /* Helper Methods */
 
-    public boolean checkInternetServices() {
-        if (!Utilities.checkInternetConnectivity(this)) {
-            buildAlertMessageNoInternet();
-            return false;
-        }
-
-        return true;
+    private void startEntryPoint(){
+        Intent intent = new Intent(SetUpActivity.this, EntryPoint.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void buildAlertMessageNoGps() {
@@ -215,13 +245,25 @@ public class SetUpActivity extends AppCompatActivity {
         internetAlert.show();
     }
 
-    private void setGpsCheck() {
+    private void setGpsCheckTrue() {
         gpsCheck.setText(getString(R.string.gps_connected));
         gpsState = true;
     }
 
-    private void setInternetCheck() {
+    private void setInternetCheckTrue() {
         internetCheck.setText(getString(R.string.internet_connected));
         internetState = true;
     }
+
+    private void setGpsCheckFalse() {
+        gpsCheck.setText(getString(R.string.gps_not_connected));
+        gpsState = false;
+    }
+
+    private void setInternetCheckFalse() {
+        internetCheck.setText(getString(R.string.internet_not_connected));
+        internetState = false;
+    }
+
+
 }

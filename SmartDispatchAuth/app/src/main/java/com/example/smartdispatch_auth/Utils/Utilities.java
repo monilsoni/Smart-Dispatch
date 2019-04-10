@@ -18,13 +18,4 @@ public class Utilities {
             mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
-
-    public static boolean checkInternetConnectivity(Context context){
-
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        return (activeNetwork != null && activeNetwork.isConnectedOrConnecting());
-
-    }
 }
