@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth.UI;
+package com.example.smartdispatch_auth.UI.Requester;
 
 import android.Manifest;
 import android.app.AlertDialog;

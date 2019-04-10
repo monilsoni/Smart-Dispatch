@@ -11,6 +11,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UI.Admin.AdminMainActivity;
+import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
+import com.example.smartdispatch_auth.UI.Requester.RegisterActivity;
+import com.example.smartdispatch_auth.UI.Requester.UserMainActivity;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;

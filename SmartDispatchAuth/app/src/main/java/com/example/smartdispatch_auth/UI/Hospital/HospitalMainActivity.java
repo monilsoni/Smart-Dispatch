@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth.UI;
+package com.example.smartdispatch_auth.UI.Hospital;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

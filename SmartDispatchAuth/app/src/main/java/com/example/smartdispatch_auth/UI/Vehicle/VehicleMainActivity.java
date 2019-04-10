@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth.UI;
+package com.example.smartdispatch_auth.UI.Vehicle;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

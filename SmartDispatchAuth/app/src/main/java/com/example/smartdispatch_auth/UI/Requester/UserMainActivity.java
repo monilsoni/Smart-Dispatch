@@ -1,24 +1,17 @@
-package com.example.smartdispatch_auth.UI;
+package com.example.smartdispatch_auth.UI.Requester;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,11 +19,9 @@ import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.UserLocation;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
+import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UserClient;
-import com.example.smartdispatch_auth.Utils.SetUpActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -48,11 +39,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-
-import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
-import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_INTERNET;
 
 public class UserMainActivity extends AppCompatActivity implements View.OnClickListener {
 
