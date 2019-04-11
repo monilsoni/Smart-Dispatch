@@ -50,7 +50,7 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
 
         switch (v.getId()) {
             case R.id.user_login_button: {
-                intent.putExtra("authenticator", "user");
+                intent.putExtra("authenticator", "requester");
                 startActivity(intent);
                 break;
             }

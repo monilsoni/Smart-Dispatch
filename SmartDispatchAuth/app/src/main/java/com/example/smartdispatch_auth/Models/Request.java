@@ -16,48 +16,48 @@ public class Request implements Parcelable {
             return new Request[size];
         }
     };
-    private UserLocation userLocation;
-    private VehicleLocation vehicleLocation;
+    private Requester requester;
+    private Vehicle vehicle;
     private Hospital hospital;
 
     protected Request(Parcel in) {
-        userLocation = in.readParcelable(UserLocation.class.getClassLoader());
-        vehicleLocation = in.readParcelable(VehicleLocation.class.getClassLoader());
+        requester = in.readParcelable(Requester.class.getClassLoader());
+        vehicle = in.readParcelable(Vehicle.class.getClassLoader());
         hospital = in.readParcelable(Hospital.class.getClassLoader());
     }
 
     public Request() {
     }
 
-    public Request(UserLocation userLocation, VehicleLocation vehicleLocation, Hospital hospital) {
-        this.userLocation = userLocation;
-        this.vehicleLocation = vehicleLocation;
+    public Request(Requester requester, Vehicle vehicle, Hospital hospital) {
+        this.requester = requester;
+        this.vehicle = vehicle;
         this.hospital = hospital;
     }
 
     @Override
     public String toString() {
         return "Request{" +
-                "userLocation=" + userLocation +
-                ", vehicleLocation=" + vehicleLocation +
+                "requester=" + requester +
+                ", vehicleLocation=" + vehicle +
                 ", hospital=" + hospital +
                 '}';
     }
 
-    public UserLocation getUserLocation() {
-        return userLocation;
+    public Requester getRequester() {
+        return requester;
     }
 
-    public void setUserLocation(UserLocation userLocation) {
-        this.userLocation = userLocation;
+    public void setRequester(Requester requester) {
+        this.requester = requester;
     }
 
-    public VehicleLocation getVehicleLocation() {
-        return vehicleLocation;
+    public Vehicle getVehicle() {
+        return vehicle;
     }
 
-    public void setVehicleLocation(VehicleLocation vehicleLocation) {
-        this.vehicleLocation = vehicleLocation;
+    public void setVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
     }
 
     public Hospital getHospital() {
@@ -75,8 +75,8 @@ public class Request implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(userLocation, flags);
-        dest.writeParcelable(vehicleLocation, flags);
+        dest.writeParcelable(requester, flags);
+        dest.writeParcelable(vehicle, flags);
         dest.writeParcelable(hospital, flags);
     }
 }

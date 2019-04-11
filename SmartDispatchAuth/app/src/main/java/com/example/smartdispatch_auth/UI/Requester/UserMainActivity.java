@@ -15,8 +15,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.smartdispatch_auth.Models.User;
-import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Requester;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
@@ -51,9 +51,8 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     // Variables
     private ListenerRegistration mUserListEventListener;
     private FusedLocationProviderClient mFusedLocationClient;
-    private UserLocation mUserLocation;
-    private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
-    private ArrayList<User> mUserList = new ArrayList<>();
+    private Requester mRequester;
+    private ArrayList<Requester> mUserList = new ArrayList<>();
     private boolean set = false;
 
     @Override
@@ -132,8 +131,8 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
                 Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
                 intent.putParcelableArrayListExtra(getString(R.string.intent_user_list), mUserList);
-                intent.putParcelableArrayListExtra(getString(R.string.intent_user_locations), mUserLocations);
-                intent.putExtra("user_location", mUserLocation);
+                intent.putExtra("requester", mRequester);
+                Log.d(TAG, mRequester.toString());
                 startActivity(intent);
                 break;
             }
@@ -153,8 +152,8 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         if (!set) {
             Utilities.showDialog(mProgressBar);
         }
-        if (mUserLocation == null) {
-            mUserLocation = new UserLocation();
+        if (mRequester == null) {
+            mRequester = new Requester();
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getUid());
 
@@ -162,10 +161,10 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "onComplete: successfully set the user client.");
-                        User user = task.getResult().toObject(User.class);
-                        mUserLocation.setUser(user);
-                        ((UserClient) (getApplicationContext())).setUser(user);
+                        Log.d(TAG, "onComplete: successfully set the requester client.");
+                        mRequester = task.getResult().toObject(Requester.class);
+                        Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
+                        ((UserClient) (getApplicationContext())).setRequester(mRequester);
                         getLastKnownLocation();
                     }
                 }
@@ -195,37 +194,14 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 } catch (NullPointerException e) {
                     Log.d(TAG, "getLastKnownLocation: mLocation is null.");
                 }
-                mUserLocation.setGeoPoint(geoPoint);
-                mUserLocation.setTimeStamp(null);
-                saveUserLocation();
+                mRequester.setGeoPoint(geoPoint);
+                mRequester.setTimeStamp(null);
+
+                getUsers();
+                display();
                 startLocationService();
             }
         });
-    }
-
-    private void saveUserLocation() {
-        if (mUserLocation != null) {
-            DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_user_locations))
-                    .document(FirebaseAuth.getInstance().getUid());
-
-            locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
-                                "\n latitude: " + mUserLocation.getGeoPoint().getLatitude() +
-                                "\n longitude: " + mUserLocation.getGeoPoint().getLongitude());
-
-                        getUsers();
-                        display();
-                    } else {
-                        Log.d(TAG, "saveUserLocation not successful. ");
-                    }
-                }
-            });
-        }
-
     }
 
     private void getUsers() {
@@ -249,58 +225,29 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                             mUserList = new ArrayList<>();
 
                             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                                User user = doc.toObject(User.class);
-                                if (user != null) {
-                                    mUserList.add(user);
-                                    getUserLocation(user);
+                                Requester requester = doc.toObject(Requester.class);
+                                if (requester != null) {
+                                    mUserList.add(requester);
                                 } else {
-                                    Log.d(TAG, "user Null");
+                                    Log.d(TAG, "requester Null");
                                 }
                             }
 
-                            Log.d(TAG, "onEvent: user list size: " + mUserList.size());
+                            Log.d(TAG, "onEvent: requester list size: " + mUserList.size());
                         }
                     }
                 });
     }
 
-    private void getUserLocation(final User user) {
-
-        if (user != null) {
-            Log.d(TAG, "getUserLocation: " + user.toString());
-
-            DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_user_locations))
-                    .document(user.getUser_id());
-
-            locationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        UserLocation userLocation = task.getResult().toObject(UserLocation.class);
-                        if (userLocation != null) {
-                            mUserLocations.add(userLocation);
-                            Log.d(TAG, userLocation.toString());
-                        }
-                    }
-                }
-            });
-        } else {
-            Log.d(TAG, "getUserLocation: user is null.");
-        }
-
-
-    }
-
     public void display() {
 
-        User user = ((UserClient) getApplicationContext()).getUser();
+        Requester requester = ((UserClient) getApplicationContext()).getRequester();
 
         Utilities.hideDialog(mProgressBar);
-        mWelcomeText.setText("Welcome to SmartDispatch " + user.getEmail().substring(0, user.getEmail().indexOf("@")));
-        mAadharText.setText("Aadhar Number: " + user.getAadhar_number());
-        mPhoneText.setText("Phone Number: " + user.getPhone_number());
-        mLocationText.setText("Latitude: " + mUserLocation.getGeoPoint().getLatitude() + ", Longitude: " + mUserLocation.getGeoPoint().getLongitude());
+        mWelcomeText.setText("Welcome to SmartDispatch " + requester.getEmail().substring(0, requester.getEmail().indexOf("@")));
+        mAadharText.setText("Aadhar Number: " + requester.getAadhar_number());
+        mPhoneText.setText("Phone Number: " + requester.getPhone_number());
+        mLocationText.setText("Latitude: " + mRequester.getGeoPoint().getLatitude() + ", Longitude: " + mRequester.getGeoPoint().getLongitude());
         set = true;
     }
 }

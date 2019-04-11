@@ -45,7 +45,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Intent intent = getIntent();
         authenticator = intent.getStringExtra("authenticator");
-        if(!authenticator.equals("user")){
+        if(!authenticator.equals("requester")){
             findViewById(R.id.link_register).setVisibility(View.GONE);
         }
 
@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Toast.makeText(LoginActivity.this, "Authenticated with: " + user.getEmail(), Toast.LENGTH_SHORT).show();
 
                     switch (authenticator){
-                        case "user": {
+                        case "requester": {
                             Intent intent = new Intent(LoginActivity.this, UserMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);

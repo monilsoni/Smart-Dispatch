@@ -8,25 +8,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Request;
-import com.example.smartdispatch_auth.Models.User;
-import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
-import com.example.smartdispatch_auth.Models.VehicleLocation;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -56,7 +49,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     //convert to vehicle and hospital objects
     private String vehicleid;
     private String hospitalid;
-    private User user;
+    private Requester requester;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +69,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         // mAuth = FirebaseAuth.getInstance();
         // db = FirebaseFirestore.getInstance();
 
-        user = ((UserClient) getApplicationContext()).getUser();
+        requester = ((UserClient) getApplicationContext()).getRequester();
     }
 
     @Override
@@ -99,9 +92,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     public void onclickSend() {
 
-        //logged in??
-        // SignIn();
-
         //createRequest();
         String typeofemergency="";
         if(mChkbox_medical.isChecked())
@@ -123,24 +113,17 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         GeoPoint location2 = new GeoPoint(23.1859, 72.6213);
 
         //Find nearby vehicle and store vehicle id in variable
-        Vehicle vehicle = new Vehicle("abcd","25","12345","1234567890","145236","123 1452 146","v_abc@gmail.com","1");
-        VehicleLocation vehicleLocation = new VehicleLocation(location1,ts,vehicle);
-        String vehicleid = "1";
-
+        Vehicle vehicle = new Vehicle("abcd","25","12345","1234567890","145236","123 1452 146","v_abc@gmail.com","1", location1, null);
         //Find nearby Hospital and store hospital id in variable
 
-        String hospitalid = "2";
         Hospital hospital = new Hospital(location2,ts,"xyz","2");
-
-
-        UserLocation userLocation = new UserLocation(location,ts,user);
 
         CollectionReference dbreq = FirebaseFirestore.getInstance().collection("Requests");
 
 
         Request request = new Request(
-                userLocation,
-                vehicleLocation,
+                requester,
+                vehicle,
                 hospital
         );
 
@@ -224,7 +207,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         String hospitalid = "2";
 
         String message = "<#>" + "\n" + typeofemergency + "\n" + scaleofemergency + "\n" + location.getLatitude()
-                + "\n" + location.getLongitude() + "\n" + vehicleid + "\n" + hospitalid + "\n" + user.getEmail() + "\n" +"MamEVHTp4dw";
+                + "\n" + location.getLongitude() + "\n" + vehicleid + "\n" + hospitalid + "\n" + requester.getEmail() + "\n" +"MamEVHTp4dw";
 
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage("8347747701", null, message, null, null);

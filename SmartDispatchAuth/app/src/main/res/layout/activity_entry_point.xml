@@ -36,7 +36,7 @@
         android:layout_marginTop="8dp"
         android:background="@color/colorPrimaryDark"
         android:padding="10dp"
-        android:text="LogIn as a user"
+        android:text="LogIn as a Requester"
         android:textColor="#FFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

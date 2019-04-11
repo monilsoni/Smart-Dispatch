@@ -3,34 +3,12 @@ package com.example.smartdispatch_auth.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Vehicle implements Parcelable {
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.ServerTimestamp;
 
-    private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number, vehicle_email, vehicle_id;
+import java.util.Date;
 
-    public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String vehicle_email, String vehicle_id) {
-        this.driver_name = driver_name;
-        this.driver_age = driver_age;
-        this.vehicle_number = vehicle_number;
-        this.phone_number = phone_number;
-        this.license_number = license_number;
-        this.aadhar_number = aadhar_number;
-        this.vehicle_email = vehicle_email;
-        this.vehicle_id = vehicle_id;
-    }
-
-    public Vehicle() {
-    }
-
-    protected Vehicle(Parcel in) {
-        driver_name = in.readString();
-        driver_age = in.readString();
-        vehicle_number = in.readString();
-        phone_number = in.readString();
-        license_number = in.readString();
-        aadhar_number = in.readString();
-        vehicle_email = in.readString();
-        vehicle_id = in.readString();
-    }
+public class Vehicle extends User implements Parcelable {
 
     public static final Creator<Vehicle> CREATOR = new Creator<Vehicle>() {
         @Override
@@ -43,6 +21,41 @@ public class Vehicle implements Parcelable {
             return new Vehicle[size];
         }
     };
+    private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number;
+    private GeoPoint geoPoint;
+    private @ServerTimestamp
+    Date timeStamp;
+
+    public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String email, String user_id, GeoPoint geoPoint, Date timeStamp) {
+        this.driver_name = driver_name;
+        this.driver_age = driver_age;
+        this.vehicle_number = vehicle_number;
+        this.phone_number = phone_number;
+        this.license_number = license_number;
+        this.aadhar_number = aadhar_number;
+        this.email = email;
+        this.user_id = user_id;
+        this.geoPoint = geoPoint;
+        this.timeStamp = timeStamp;
+    }
+
+    public Vehicle() {
+    }
+
+    protected Vehicle(Parcel in) {
+        driver_name = in.readString();
+        driver_age = in.readString();
+        vehicle_number = in.readString();
+        phone_number = in.readString();
+        license_number = in.readString();
+        aadhar_number = in.readString();
+        email = in.readString();
+        user_id = in.readString();
+
+        double latitude = in.readDouble();
+        double longitude = in.readDouble();
+        geoPoint = new GeoPoint(latitude, longitude);
+    }
 
     public String getDriver_name() {
         return driver_name;
@@ -92,20 +105,20 @@ public class Vehicle implements Parcelable {
         this.aadhar_number = aadhar_number;
     }
 
-    public String getVehicle_email() {
-        return vehicle_email;
+    public GeoPoint getGeoPoint() {
+        return geoPoint;
     }
 
-    public void setVehicle_email(String vehicle_email) {
-        this.vehicle_email = vehicle_email;
+    public void setGeoPoint(GeoPoint geoPoint) {
+        this.geoPoint = geoPoint;
     }
 
-    public String getVehicle_id() {
-        return vehicle_id;
+    public Date getTimeStamp() {
+        return timeStamp;
     }
 
-    public void setVehicle_id(String vehicle_id) {
-        this.vehicle_id = vehicle_id;
+    public void setTimeStamp(Date timeStamp) {
+        this.timeStamp = timeStamp;
     }
 
     @Override
@@ -117,8 +130,10 @@ public class Vehicle implements Parcelable {
                 ", phone_number='" + phone_number + '\'' +
                 ", license_number='" + license_number + '\'' +
                 ", aadhar_number='" + aadhar_number + '\'' +
-                ", vehicle_email='" + vehicle_email + '\'' +
-                ", vehicle_id='" + vehicle_id + '\'' +
+                ", email='" + email + '\'' +
+                ", user_id='" + user_id + '\'' +
+                ", geoPoint=" + geoPoint +
+                ", timeStamp=" + timeStamp +
                 '}';
     }
 
@@ -135,7 +150,10 @@ public class Vehicle implements Parcelable {
         dest.writeString(phone_number);
         dest.writeString(license_number);
         dest.writeString(aadhar_number);
-        dest.writeString(vehicle_email);
-        dest.writeString(vehicle_id);
+        dest.writeString(email);
+        dest.writeString(user_id);
+
+        dest.writeDouble(geoPoint.getLatitude());
+        dest.writeDouble(geoPoint.getLongitude());
     }
 }

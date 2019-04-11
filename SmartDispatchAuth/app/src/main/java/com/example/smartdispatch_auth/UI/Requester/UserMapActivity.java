@@ -19,8 +19,7 @@ import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.ClusterMarker;
 import com.example.smartdispatch_auth.Models.PolylineData;
-import com.example.smartdispatch_auth.Models.User;
-import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Utils.MyClusterManagerRenderer;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -67,14 +66,16 @@ public class UserMapActivity extends AppCompatActivity implements
     private MapView mMapView;
 
     // vars
-    private ArrayList<User> mUserList = new ArrayList<>();
-    private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
+    private ArrayList<Requester> mUserList = new ArrayList<>();
+
     private GoogleMap mGoogleMap;
     private LatLngBounds mMapBoundary;
-    private UserLocation mUserPosition;
+
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
+    private Requester mRequester;
+
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
     private MyClusterManagerRenderer mClusterManagerRenderer;
@@ -92,22 +93,11 @@ public class UserMapActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if (intent != null) {
-            final ArrayList<User> users = intent.getParcelableArrayListExtra(getString(R.string.intent_user_list));
+            final ArrayList<Requester> users = intent.getParcelableArrayListExtra(getString(R.string.intent_user_list));
             mUserList.addAll(users);
 
-            final ArrayList<UserLocation> locations = intent.getParcelableArrayListExtra(getString(R.string.intent_user_locations));
-            mUserLocations.addAll(locations);
-
-            mUserPosition = intent.getParcelableExtra("user_location");
-        }
-
-
-        if (mUserLocations.isEmpty()) {
-            Log.d(TAG, "Arraylist is empty");
-        } else {
-            for (UserLocation userLocation : mUserLocations) {
-                Log.d(TAG, userLocation.toString());
-            }
+            mRequester = intent.getParcelableExtra("requester");
+            Log.d(TAG, mRequester.toString());
         }
 
         initGoogleMap(savedInstanceState);
@@ -226,8 +216,8 @@ public class UserMapActivity extends AppCompatActivity implements
         directions.alternatives(true);
         directions.origin(
                 new com.google.maps.model.LatLng(
-                        mUserPosition.getGeoPoint().getLatitude(),
-                        mUserPosition.getGeoPoint().getLongitude()
+                        mRequester.getGeoPoint().getLatitude(),
+                        mRequester.getGeoPoint().getLongitude()
                 )
         );
         Log.d(TAG, "calculateDirections: destination: " + destination.toString());
@@ -272,20 +262,20 @@ public class UserMapActivity extends AppCompatActivity implements
             for (final ClusterMarker clusterMarker : mClusterMarkers) {
 
                 DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_user_locations))
-                        .document(clusterMarker.getUser().getUser_id());
+                        .collection(getString(R.string.collection_users))
+                        .document(clusterMarker.getRequester().getUser_id());
 
                 userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
 
-                            final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+                            final Requester updatedUserLocation = task.getResult().toObject(Requester.class);
 
                             // update the location
                             for (int i = 0; i < mClusterMarkers.size(); i++) {
                                 try {
-                                    if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
+                                    if (mClusterMarkers.get(i).getRequester().getUser_id().equals(updatedUserLocation.getUser_id())) {
 
                                         LatLng updatedLatLng = new LatLng(
                                                 updatedUserLocation.getGeoPoint().getLatitude(),
@@ -335,6 +325,7 @@ public class UserMapActivity extends AppCompatActivity implements
         if (mGoogleMap != null) {
 
             resetMap();
+            Log.d(TAG, "UserList Size: " + mUserList.size());
 
             if (mClusterManager == null) {
                 mClusterManager = new ClusterManager<ClusterMarker>(this, mGoogleMap);
@@ -349,26 +340,29 @@ public class UserMapActivity extends AppCompatActivity implements
             }
             mGoogleMap.setOnInfoWindowClickListener(this);
 
-            for (UserLocation userLocation : mUserLocations) {
+            for (Requester requester : mUserList) {
 
-                Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeoPoint().toString());
+                Log.d(TAG, "addMapMarkers: location: " + requester.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                    Log.d(TAG, "Requester: " + requester.toString());
+
+                    if (requester.getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
                         snippet = "This is you";
                     } else {
-                        snippet = "Determine route to " + userLocation.getUser().getEmail() + "?";
+                        snippet = "Determine route to " + requester.getEmail() + "?";
                     }
 
                     int avatar = R.drawable.ic_launcher_background; // set the default avatar
 
                     ClusterMarker newClusterMarker = new ClusterMarker(
-                            new LatLng(userLocation.getGeoPoint().getLatitude(), userLocation.getGeoPoint().getLongitude()),
-                            userLocation.getUser().getEmail(),
+                            new LatLng(requester.getGeoPoint().getLatitude(), requester.getGeoPoint().getLongitude()),
+                            requester.getName(),
                             snippet,
                             avatar,
-                            userLocation.getUser()
+                            requester
                     );
+                    Log.d(TAG, "Inside the loop!");
                     mClusterManager.addItem(newClusterMarker);
                     mClusterMarkers.add(newClusterMarker);
 
@@ -377,6 +371,7 @@ public class UserMapActivity extends AppCompatActivity implements
                 }
 
             }
+            Log.d(TAG, "ClusterMarker Size: " + mClusterMarkers.size());
             mClusterManager.cluster();
 
             setCameraView();
@@ -385,10 +380,10 @@ public class UserMapActivity extends AppCompatActivity implements
 
     private void setCameraView() {
 
-        double bottomBoundary = mUserPosition.getGeoPoint().getLatitude() - 0.1;
-        double leftBoundary = mUserPosition.getGeoPoint().getLongitude() - 0.1;
-        double topBoundary = mUserPosition.getGeoPoint().getLatitude() + 0.1;
-        double rightBoundary = mUserPosition.getGeoPoint().getLongitude() + 0.1;
+        double bottomBoundary = mRequester.getGeoPoint().getLatitude() - 0.1;
+        double leftBoundary = mRequester.getGeoPoint().getLongitude() - 0.1;
+        double topBoundary = mRequester.getGeoPoint().getLatitude() + 0.1;
+        double rightBoundary = mRequester.getGeoPoint().getLongitude() + 0.1;
 
         mMapBoundary = new LatLngBounds(
                 new LatLng(bottomBoundary, leftBoundary),

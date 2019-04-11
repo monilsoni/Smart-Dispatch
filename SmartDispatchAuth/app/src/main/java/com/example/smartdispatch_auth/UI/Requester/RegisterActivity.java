@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.smartdispatch_auth.Models.User;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.LoginActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
@@ -56,20 +56,20 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
 
-                            User user = new User(email, FirebaseAuth.getInstance().getUid(), aadhar_number, phone_number, name, sex, age);
+                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getUid(), aadhar_number, phone_number, name, sex, age, null, null);
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection(getString(R.string.collection_users))
                                     .document(FirebaseAuth.getInstance().getUid());
 
-                            newUserRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            newUserRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
 
                                     if(task.isSuccessful()) {
                                         Utilities.hideDialog(mProgressBar); // Since we're going to change the activity
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                        intent.putExtra("authenticator", "user");
+                                        intent.putExtra("authenticator", "requester");
                                         startActivity(intent);
                                         finish();
                                     }else if(task.getException() != null){

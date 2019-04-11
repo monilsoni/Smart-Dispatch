@@ -6,7 +6,6 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,8 +20,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.example.smartdispatch_auth.Models.User;
-import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -107,30 +105,30 @@ public class LocationService extends Service {
                         Location location = locationResult.getLastLocation();
 
                         if (location != null) {
-                            User user = ((UserClient)(getApplicationContext())).getUser();
+                            Requester requester = ((UserClient)(getApplicationContext())).getRequester();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            UserLocation userLocation = new UserLocation(geoPoint, null, user);
-                            saveUserLocation(userLocation);
+                            requester.setGeoPoint(geoPoint);
+                            saveUserLocation(requester);
                         }
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-    private void saveUserLocation(final UserLocation userLocation){
+    private void saveUserLocation(final Requester requester){
 
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_user_locations))
+                    .collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getUid());
 
-            locationRef.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+            locationRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
                         Log.d(TAG, "onComplete: \ninserted user location into database." +
-                                "\n latitude: " + userLocation.getGeoPoint().getLatitude() +
-                                "\n longitude: " + userLocation.getGeoPoint().getLongitude());
+                                "\n latitude: " + requester.getGeoPoint().getLatitude() +
+                                "\n longitude: " + requester.getGeoPoint().getLongitude());
                     }
                 }
             });

@@ -9,14 +9,14 @@ public class ClusterMarker implements ClusterItem {
     private String title;
     private String snippet;
     private int iconPicture;
-    private User user;
+    private Requester requester;
 
-    public ClusterMarker(LatLng position, String title, String snippet, int iconPicture, User user) {
+    public ClusterMarker(LatLng position, String title, String snippet, int iconPicture, Requester requester) {
         this.position = position;
         this.title = title;
         this.snippet = snippet;
         this.iconPicture = iconPicture;
-        this.user = user;
+        this.requester = requester;
     }
 
     public ClusterMarker() {
@@ -58,11 +58,11 @@ public class ClusterMarker implements ClusterItem {
         this.iconPicture = iconPicture;
     }
 
-    public User getUser() {
-        return user;
+    public Requester getRequester() {
+        return requester;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setRequester(Requester requester) {
+        this.requester = requester;
     }
 }

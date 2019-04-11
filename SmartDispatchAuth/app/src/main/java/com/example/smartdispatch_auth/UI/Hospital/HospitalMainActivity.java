@@ -15,22 +15,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.RequestDisp;
-import com.example.smartdispatch_auth.Models.User;
-import com.example.smartdispatch_auth.Models.UserLocation;
+import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.UI.LoginActivity;
-import com.example.smartdispatch_auth.UI.Requester.RegisterActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -39,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HospitalMainActivity extends AppCompatActivity {
+
+    private static final String TAG = "HospitalMainActivity";
 
     // widgets
     TextView emptyListMessage;
@@ -119,42 +115,26 @@ public class HospitalMainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Request request = document.toObject(Request.class);
+
                                     if (true){
-                                        User usr = request.getUserLocation().getUser();
-                                        Vehicle v = request.getVehicleLocation().getVehicle();
+                                        Requester usr = request.getRequester();
+                                        Vehicle v = request.getVehicle();
                                         String usrname = usr.getName(), usrage = usr.getAge(), usrsex = usr.getSex();
                                         String drivername = v.getDriver_name(), contactno = v.getPhone_number(), vehicleno = v.getVehicle_number();
                                         requestList.add(new RequestDisp(usrname, usrage, usrsex, drivername, contactno, vehicleno));
                                         requests.add(request);
 
+                                        Log.d(TAG, "CHECK: "+ request.toString());
                                         DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                                 .collection(getString(R.string.collection_vehicles))
-                                                .document(request.getVehicleLocation().getVehicle().getVehicle_id());
+                                                .document(request.getVehicle().getUser_id());
 
-                                        newUserRef.set(request.getVehicleLocation().getVehicle()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        newUserRef.set(request.getVehicle()).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
 
                                                 if(task.isSuccessful()) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-                                                }else if(task.getException() != null){
-                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                }else{
-                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-
-                                        newUserRef = FirebaseFirestore.getInstance()
-                                                .collection(getString(R.string.collection_vehicle_locations))
-                                                .document(request.getVehicleLocation().getVehicle().getVehicle_id());
-
-                                        newUserRef.set(request.getVehicleLocation()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-
-                                                if(task.isSuccessful()) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                                     Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
                                                 }else if(task.getException() != null){
                                                     Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                                 }else{
