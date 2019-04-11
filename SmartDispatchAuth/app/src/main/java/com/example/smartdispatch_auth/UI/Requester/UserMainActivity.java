@@ -195,6 +195,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                         GeoPoint geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
                         mRequester.setGeoPoint(geoPoint);
 
+                        mUserList.add(mRequester);
                         display();
                         startLocationService();
 
