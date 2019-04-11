@@ -80,9 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
 
             case R.id.email_log_in_button: {
-                String email = mEmail.getText().toString();
-                String password = mPassword.getText().toString();
-                signIn(email, password);
+                signIn();
                 break;
             }
         }
@@ -145,10 +143,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         };
     }
 
-    public void signIn(final String email, String password) {
+    public void signIn() {
+        final String email = mEmail.getText().toString();
+        final String password = mPassword.getText().toString();
+
         if (email != null && password != null) {
 
             Utilities.showDialog(mProgressBar);
+
+            boolean check = true;
+            if(!authenticator.equals("requester")){
+                if(!email.contains("@smartdispatch.gov.in")){
+                    check = false;
+                }else{
+                    if(authenticator.equals("vehicle") && !email.contains("v_"))
+                        check = false;
+                    else if(authenticator.equals("hospital") && !email.contains("h_"))
+                        check = false;
+                }
+            }
+
+            if(!check){
+                Toast.makeText(LoginActivity.this, "Invalid Email Address", Toast.LENGTH_SHORT).show();
+                Utilities.hideDialog(mProgressBar);
+            }
+
+
 
             FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {

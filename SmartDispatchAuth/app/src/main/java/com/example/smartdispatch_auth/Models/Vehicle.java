@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
 
@@ -22,9 +21,6 @@ public class Vehicle extends User implements Parcelable {
         }
     };
     private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number;
-    private GeoPoint geoPoint;
-    private @ServerTimestamp
-    Date timeStamp;
 
     public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String email, String user_id, GeoPoint geoPoint, Date timeStamp) {
         this.driver_name = driver_name;
@@ -37,6 +33,7 @@ public class Vehicle extends User implements Parcelable {
         this.user_id = user_id;
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
+        this.type = "vehicle";
     }
 
     public Vehicle() {
@@ -55,6 +52,8 @@ public class Vehicle extends User implements Parcelable {
         double latitude = in.readDouble();
         double longitude = in.readDouble();
         geoPoint = new GeoPoint(latitude, longitude);
+
+        type = in.readString();
     }
 
     public String getDriver_name() {
@@ -105,22 +104,6 @@ public class Vehicle extends User implements Parcelable {
         this.aadhar_number = aadhar_number;
     }
 
-    public GeoPoint getGeoPoint() {
-        return geoPoint;
-    }
-
-    public void setGeoPoint(GeoPoint geoPoint) {
-        this.geoPoint = geoPoint;
-    }
-
-    public Date getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(Date timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
     @Override
     public String toString() {
         return "Vehicle{" +
@@ -132,6 +115,7 @@ public class Vehicle extends User implements Parcelable {
                 ", aadhar_number='" + aadhar_number + '\'' +
                 ", email='" + email + '\'' +
                 ", user_id='" + user_id + '\'' +
+                ", type='" + type + '\'' +
                 ", geoPoint=" + geoPoint +
                 ", timeStamp=" + timeStamp +
                 '}';
@@ -155,5 +139,7 @@ public class Vehicle extends User implements Parcelable {
 
         dest.writeDouble(geoPoint.getLatitude());
         dest.writeDouble(geoPoint.getLongitude());
+
+        dest.writeString(type);
     }
 }

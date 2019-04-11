@@ -9,37 +9,17 @@ public class RequestClusterMarker implements ClusterItem {
     private String snippet;
     private int iconPicture;
     private User user;
-    private Vehicle vehicle;
-    private Hospital hospital;
 
-    public RequestClusterMarker(LatLng position, String title, String snippet, int iconPicture, User user, Vehicle vehicle, Hospital hospital) {
+    public RequestClusterMarker(LatLng position, String title, String snippet, int iconPicture, User user) {
         this.position = position;
         this.title = title;
         this.snippet = snippet;
         this.iconPicture = iconPicture;
         this.user = user;
-        this.vehicle = vehicle;
-        this.hospital = hospital;
     }
 
     public RequestClusterMarker() {
 
-    }
-
-    public Vehicle getVehicle() {
-        return vehicle;
-    }
-
-    public void setVehicle(Vehicle vehicle) {
-        this.vehicle = vehicle;
-    }
-
-    public Hospital getHospital() {
-        return hospital;
-    }
-
-    public void setHospital(Hospital hospital) {
-        this.hospital = hospital;
     }
 
     @Override

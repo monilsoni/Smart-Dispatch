@@ -4,11 +4,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
 
-public class Hospital implements Parcelable {
+public class Hospital extends User implements Parcelable {
 
     public static final Creator<Hospital> CREATOR = new Creator<Hospital>() {
         @Override
@@ -21,11 +20,8 @@ public class Hospital implements Parcelable {
             return new Hospital[size];
         }
     };
-    private GeoPoint geoPoint;
-    private @ServerTimestamp
-    Date timeStamp;
+
     private String hospital_name;
-    private String hospital_id;
 
     protected Hospital(Parcel in) {
         double latitude = in.readDouble();
@@ -33,33 +29,32 @@ public class Hospital implements Parcelable {
         geoPoint = new GeoPoint(latitude, longitude);
 
         hospital_name = in.readString();
-        hospital_id = in.readString();
+        type = in.readString();
+        email = in.readString();
+        user_id = in.readString();
     }
 
     public Hospital() {
     }
 
-    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String hospital_id) {
+    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id) {
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
         this.hospital_name = hospital_name;
-        this.hospital_id = hospital_id;
-    }
-
-    public String getHospital_id() {
-        return hospital_id;
-    }
-
-    public void setHospital_id(String hospital_id) {
-        this.hospital_id = hospital_id;
+        this.type = "hospital";
+        this.email = email;
+        this.user_id = user_id;
     }
 
     @Override
     public String toString() {
         return "Hospital{" +
-                "geoPoint=" + geoPoint +
+                "hospital_name='" + hospital_name + '\'' +
+                ", email='" + email + '\'' +
+                ", user_id='" + user_id + '\'' +
+                ", type='" + type + '\'' +
+                ", geoPoint=" + geoPoint +
                 ", timeStamp=" + timeStamp +
-                ", hospital_name='" + hospital_name + '\'' +
                 '}';
     }
 
@@ -98,6 +93,8 @@ public class Hospital implements Parcelable {
         dest.writeDouble(geoPoint.getLongitude());
 
         dest.writeString(hospital_name);
-        dest.writeString(hospital_id);
+        dest.writeString(type);
+        dest.writeString(email);
+        dest.writeString(user_id);
     }
 }

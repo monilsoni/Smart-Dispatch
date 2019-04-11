@@ -4,16 +4,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
 
 public class Requester extends User implements Parcelable {
 
     String aadhar_number, phone_number, name, sex, age;
-    private GeoPoint geoPoint;
-    private @ServerTimestamp
-    Date timeStamp;
 
     public Requester() {
 
@@ -29,6 +25,7 @@ public class Requester extends User implements Parcelable {
         this.age = age;
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
+        this.type = "requester";
     }
 
     protected Requester(Parcel in) {
@@ -43,6 +40,7 @@ public class Requester extends User implements Parcelable {
         double latitude = in.readDouble();
         double longitude = in.readDouble();
         geoPoint = new GeoPoint(latitude, longitude);
+        type = in.readString();
     }
 
     public static final Creator<Requester> CREATOR = new Creator<Requester>() {
@@ -69,6 +67,7 @@ public class Requester extends User implements Parcelable {
                 ", timeStamp=" + timeStamp +
                 ", email='" + email + '\'' +
                 ", user_id='" + user_id + '\'' +
+                ", type='" + type + '\'' +
                 '}';
     }
 
@@ -144,5 +143,7 @@ public class Requester extends User implements Parcelable {
 
         dest.writeDouble(geoPoint.getLatitude());
         dest.writeDouble(geoPoint.getLongitude());
+
+        dest.writeString(type);
     }
 }

@@ -380,6 +380,10 @@ public class UserMapActivity extends AppCompatActivity implements
 
     private void setCameraView() {
 
+        int width = getResources().getDisplayMetrics().widthPixels;
+        int height = getResources().getDisplayMetrics().heightPixels;
+        int padding = (int) (width * 0.12); // offset from edges of the map 12% of screen
+
         double bottomBoundary = mRequester.getGeoPoint().getLatitude() - 0.1;
         double leftBoundary = mRequester.getGeoPoint().getLongitude() - 0.1;
         double topBoundary = mRequester.getGeoPoint().getLatitude() + 0.1;
@@ -390,7 +394,7 @@ public class UserMapActivity extends AppCompatActivity implements
                 new LatLng(topBoundary, rightBoundary)
         );
 
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, 0));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary,  width, height, padding));
 
     }
 

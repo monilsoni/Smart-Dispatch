@@ -124,7 +124,6 @@ public class HospitalMainActivity extends AppCompatActivity {
                                         requestList.add(new RequestDisp(usrname, usrage, usrsex, drivername, contactno, vehicleno));
                                         requests.add(request);
 
-                                        Log.d(TAG, "CHECK: "+ request.toString());
                                         DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                                 .collection(getString(R.string.collection_vehicles))
                                                 .document(request.getVehicle().getUser_id());
@@ -145,7 +144,7 @@ public class HospitalMainActivity extends AppCompatActivity {
 
                                         newUserRef = FirebaseFirestore.getInstance()
                                                 .collection(getString(R.string.collection_hospital))
-                                                .document(request.getHospital().getHospital_id());
+                                                .document(request.getHospital().getUser_id());
 
                                         newUserRef.set(request.getHospital()).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override

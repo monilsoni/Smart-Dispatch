@@ -103,20 +103,12 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
         int scaleofemergency = mSeek_severity.getProgress();
 
-
-        Date date = new Date();
-        Timestamp ts = new Timestamp(date.getTime());
-
-        double latitude = 23.56, longitude = 26.56;
-        GeoPoint location = new GeoPoint(latitude, longitude);
         GeoPoint location1 = new GeoPoint(23.1116, 72.5728);
         GeoPoint location2 = new GeoPoint(23.1859, 72.6213);
 
-        //Find nearby vehicle and store vehicle id in variable
-        Vehicle vehicle = new Vehicle("abcd","25","12345","1234567890","145236","123 1452 146","v_abc@gmail.com","1", location1, null);
-        //Find nearby Hospital and store hospital id in variable
+        Vehicle vehicle = new Vehicle("RaviKumarTiwari","25","12345","1234567890","145236","123 1452 146","v_abc@gmail.com","1", location1, null);
 
-        Hospital hospital = new Hospital(location2,ts,"xyz","2");
+        Hospital hospital = new Hospital(location2, null,"Aashka", "aashka@aashka.com", "3");
 
         CollectionReference dbreq = FirebaseFirestore.getInstance().collection("Requests");
 
