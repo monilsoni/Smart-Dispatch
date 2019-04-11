@@ -115,13 +115,13 @@
             android:id="@+id/divider4"
             android:layout_width="match_parent"
             android:layout_height="12dp"
-            android:background="#EB3E3E" />
+            android:background="@color/ColorSecondary" />
 
         <View
             android:id="@+id/divider3"
             android:layout_width="match_parent"
             android:layout_height="12dp"
-            android:background="#FF0000" />
+            android:background="@color/colorPrimaryDark" />
     </LinearLayout>
 
 
