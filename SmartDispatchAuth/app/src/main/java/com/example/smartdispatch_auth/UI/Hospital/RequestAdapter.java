@@ -55,7 +55,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                 intent.putExtra("request", requests.get(i));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-                Toast.makeText(getContext(), requestViewHolder.usrname.getText().toString(), Toast.LENGTH_SHORT).show();
             }
         });
         return requestViewHolder;
