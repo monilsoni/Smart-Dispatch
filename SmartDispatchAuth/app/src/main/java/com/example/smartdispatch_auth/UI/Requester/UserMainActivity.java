@@ -187,18 +187,19 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
                     Location mLocation = task.getResult();
                     mRequester.setTimeStamp(null);
+                    GeoPoint geoPoint = new GeoPoint(0, 0);
                     try {
-                        GeoPoint geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
-                        mRequester.setGeoPoint(geoPoint);
+                        geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
 
-                        /* just add the requester to the list. It does not matter what the geopoint is
-                         * since the UserMapActivity is going to fetch the location anyway */
-                        mUserList.add(mRequester);
                     } catch (NullPointerException e) {
                         Log.d(TAG, "getLastKnownLocation: mLocation is null.");
 
                     }
+                    mRequester.setGeoPoint(geoPoint);
 
+                    /* just add the requester to the list. It does not matter what the geopoint is
+                     * since the UserMapActivity is going to fetch the location anyway */
+                    mUserList.add(mRequester);
                     startLocationService();
                     display();
                 }
@@ -215,6 +216,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         mWelcomeText.setText("Welcome to SmartDispatch " + requester.getEmail().substring(0, requester.getEmail().indexOf("@")));
         mAadharText.setText("Aadhar Number: " + requester.getAadhar_number());
         mPhoneText.setText("Phone Number: " + requester.getPhone_number());
+        set = true;
 
         final DocumentReference docRef = FirebaseFirestore.getInstance()
                 .collection(getString(R.string.collection_users))
@@ -232,10 +234,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 if (snapshot != null && snapshot.exists() && snapshot.getData().get("geoPoint") != null) {
                     Log.d(TAG, "Current data: " + snapshot.getData());
                     mRequester.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
-
                     mLocationText.setText("Latitude: " + mRequester.getGeoPoint().getLatitude() + ", Longitude: " + mRequester.getGeoPoint().getLongitude());
-
-                    set = true;
                 } else {
                     Log.d(TAG, "Current data: null");
                 }
