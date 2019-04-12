@@ -230,7 +230,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                     return;
                 }
 
-                if (snapshot != null && snapshot.exists()) {
+                if (snapshot != null && snapshot.exists() && snapshot.getData().get("geoPoint") != null) {
                     Log.d(TAG, "Current data: " + snapshot.getData());
                     mRequester.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
 
