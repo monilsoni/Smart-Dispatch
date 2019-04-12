@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +9,7 @@
     android:background="#EEE">
 
     <TextView
-        android:id="@+id/textView17"
+        android:id="@+id/smartDispatch"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginBottom="8dp"
@@ -19,110 +20,105 @@
         android:translationZ="5dp"
         android:paddingVertical="14dp"
         android:background="#FFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.452"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        android:fontFamily="sans-serif" />
 
-
-    <Button
-        android:id="@+id/user_login_button"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/colorPrimaryDark"
-        android:padding="10dp"
-        android:text="LogIn as a Requester"
-        android:textColor="#FFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.183" />
-
-    <Button
-        android:id="@+id/hospital_login_button"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:background="@color/colorPrimaryDark"
-        android:padding="10dp"
-        android:text="login as a hospital"
-        android:textColor="#FFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.536" />
-
-    <Button
-        android:id="@+id/admin_login_button"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/textviewborder"
-        android:padding="10dp"
-        android:text="Login as a admin"
-        android:textColor="@color/colorPrimaryDark"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.716" />
-
-    <Button
-        android:id="@+id/vehicle_login_button"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/textviewborder"
-        android:padding="10dp"
-        android:text="log in as a vehicle"
-        android:textColor="@color/colorPrimaryDark"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.352" />
-
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/smartDispatch">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/user_login_button"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="25dp"
+                android:layout_marginTop="60dp"
+                android:background="@color/colorPrimaryDark"
+                android:padding="10dp"
+                android:text="LogIn as a requester"
+                android:textColor="#FFF"
+                android:layout_alignParentLeft="true"
+                android:fontFamily="sans-serif"/>
+
+            <Button
+                android:id="@+id/vehicle_login_button"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/textviewborder"
+                android:padding="10dp"
+                android:text="login as a vehicle"
+                android:textColor="@color/colorPrimaryDark"
+                android:layout_below="@id/user_login_button"
+                android:layout_alignParentRight="true"
+                android:fontFamily="sans-serif"/>
+
+            <Button
+                android:id="@+id/hospital_login_button"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="25dp"
+                android:background="@color/colorPrimaryDark"
+                android:padding="10dp"
+                android:text="login as a hospital"
+                android:textColor="#FFF"
+                android:layout_below="@id/vehicle_login_button"
+                android:layout_alignParentLeft="true"
+                android:fontFamily="sans-serif"/>
+
+
+
+            <Button
+                android:id="@+id/admin_login_button"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="25dp"
+                android:background="@drawable/textviewborder"
+                android:padding="10dp"
+                android:text="Login as a admin"
+                android:textColor="@color/colorPrimaryDark"
+                android:layout_below="@id/hospital_login_button"
+                android:layout_alignParentRight="true"
+                android:fontFamily="sans-serif"/>
+        </RelativeLayout>
+    </ScrollView>
+
+
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_below="@id/scrollView">
 
         <View
-            android:id="@+id/divider4"
+            android:id="@+id/lightView"
             android:layout_width="match_parent"
             android:layout_height="12dp"
-            android:background="#EB3E3E" />
+            android:background="@color/ColorSecondary"
+            android:layout_above="@+id/darkView"/>
 
         <View
-            android:id="@+id/divider3"
+            android:id="@+id/darkView"
             android:layout_width="match_parent"
             android:layout_height="12dp"
-            android:background="#FF0000" />
-    </LinearLayout>
+            android:background="@color/colorPrimaryDark"
+            android:layout_alignParentBottom="true"/>
+    </RelativeLayout>
 
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>
