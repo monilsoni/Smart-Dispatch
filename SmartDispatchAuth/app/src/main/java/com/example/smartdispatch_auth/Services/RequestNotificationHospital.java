@@ -31,7 +31,7 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
 
     private void showNotification(String title, String body) {
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        String NOTIFICATION_CHANNEL_ID = "com.example.myapplication.test";
+        String NOTIFICATION_CHANNEL_ID = "my_channel_02";
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Notification",

@@ -59,15 +59,13 @@ public class HospitalMainActivity extends AppCompatActivity {
     // widgets
     TextView emptyListMessage;
     ProgressDialog progress;
-
-    // vars
-    private FusedLocationProviderClient mFusedLocationClient;
-    private Hospital mHospital;
-
     List<RequestDisp> requestList;
     List<Request> requests;
     RequestAdapter adapter;
     int recurrentRead = 0;
+    // vars
+    private FusedLocationProviderClient mFusedLocationClient;
+    private Hospital mHospital;
     private android.support.v7.widget.RecyclerView recyclerView;
     private android.support.v7.widget.RecyclerView.LayoutManager layoutManager;
     private BroadcastReceiver removeReceiver = new BroadcastReceiver() {
@@ -135,83 +133,81 @@ public class HospitalMainActivity extends AppCompatActivity {
         requests.clear();
         requestList.clear();
 
-        FirebaseFirestore.getInstance().collection("Requests")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        recurrentRead++;
-                        if (recurrentRead == 1) {
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    Request request = document.toObject(Request.class);
-                                    String id = request.getHospital().getUser_id();
+        FirebaseFirestore.getInstance().collection("Requests").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                recurrentRead++;
+                if (recurrentRead == 1) {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Request request = document.toObject(Request.class);
+                            String id = request.getHospital().getUser_id();
 
-                                    if (FirebaseAuth.getInstance().getUid() == id) {
-                                        Requester usr = request.getRequester();
-                                        Vehicle v = request.getVehicle();
-                                        String usrname = usr.getName(), usrage = usr.getAge(), usrsex = usr.getSex();
-                                        String drivername = v.getDriver_name(), contactno = v.getPhone_number(), vehicleno = v.getVehicle_number();
-                                        requestList.add(new RequestDisp(usrname, usrage, usrsex, drivername, contactno, vehicleno));
-                                        requests.add(request);
+                            if (FirebaseAuth.getInstance().getUid().equals(id)) {
+                                Requester usr = request.getRequester();
+                                Vehicle v = request.getVehicle();
+                                String usrname = usr.getName(), usrage = usr.getAge(), usrsex = usr.getSex();
+                                String drivername = v.getDriver_name(), contactno = v.getPhone_number(), vehicleno = v.getVehicle_number();
+                                requestList.add(new RequestDisp(usrname, usrage, usrsex, drivername, contactno, vehicleno));
+                                requests.add(request);
 
-                                        DocumentReference newUserRef = FirebaseFirestore.getInstance()
-                                                .collection(getString(R.string.collection_vehicles))
-                                                .document(request.getVehicle().getUser_id());
+                                DocumentReference newUserRef = FirebaseFirestore.getInstance()
+                                        .collection(getString(R.string.collection_vehicles))
+                                        .document(request.getVehicle().getUser_id());
 
-                                        newUserRef.set(request.getVehicle()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
+                                newUserRef.set(request.getVehicle()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
 
-                                                if (task.isSuccessful()) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-                                                } else if (task.getException() != null) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-
-                                        newUserRef = FirebaseFirestore.getInstance()
-                                                .collection(getString(R.string.collection_hospital))
-                                                .document(request.getHospital().getUser_id());
-
-                                        newUserRef.set(request.getHospital()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-
-                                                if (task.isSuccessful()) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-                                                } else if (task.getException() != null) {
-                                                    Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-
-                                        getHospitalDetails();
-
-
+                                        if (task.isSuccessful()) {
+                                            Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                        } else if (task.getException() != null) {
+                                            Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
-                                    Log.d(TAG, document.getId() + " => " + document.getData());
+                                });
 
-                                }
-                            } else {
-                                Log.d(TAG, "Error getting documents: ", task.getException());
+                                newUserRef = FirebaseFirestore.getInstance()
+                                        .collection(getString(R.string.collection_hospital))
+                                        .document(request.getHospital().getUser_id());
+
+                                newUserRef.set(request.getHospital()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                        if (task.isSuccessful()) {
+                                            Toast.makeText(HospitalMainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                                        } else if (task.getException() != null) {
+                                            Toast.makeText(HospitalMainActivity.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(HospitalMainActivity.this, "Something went wrong: FireStore", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+
+                                getHospitalDetails();
+
+
                             }
-
-                            progress.dismiss();
-                            if (requestList.size() != 0)
-                                updateList();
-
-                            else
-                                emptyListMessage.setVisibility(View.VISIBLE);
+                            Log.d(TAG, document.getId() + " => " + document.getData());
 
                         }
+                    } else {
+                        Log.d(TAG, "Error getting documents: ", task.getException());
                     }
-                });
+
+                    progress.dismiss();
+                    if (requestList.size() != 0)
+                        updateList();
+
+                    else
+                        emptyListMessage.setVisibility(View.VISIBLE);
+
+                }
+            }
+        });
     }
 
     @Override

@@ -32,6 +32,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -136,8 +137,7 @@ public class VehicleLocationService extends Service {
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_hospital))
-                    // Todo: Change this to FireAuth.getInstance().getUser_id()
-                    .document(vehicle.getUser_id());
+                    .document(FirebaseAuth.getInstance().getUid());
 
             locationRef.set(vehicle).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
