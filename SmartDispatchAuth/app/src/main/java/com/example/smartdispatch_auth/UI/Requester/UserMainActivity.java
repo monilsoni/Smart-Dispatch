@@ -173,7 +173,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    // Todo: Remove FusedLocationClient and try out another way of fetching location
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation called.");
 
