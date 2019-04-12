@@ -45,7 +45,7 @@ public class VehicleMainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Request request = document.toObject(Request.class);
-                                    if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getUid()) {
+                                    if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
                                         Log.i("My object", "My Object");
                                     }
 

@@ -1,6 +1,8 @@
 package com.example.smartdispatch_auth.UI.Requester;
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -21,6 +23,7 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
+import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.lang.Float;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.example.smartdispatch_auth.Constants.MY_PERMISSIONS_REQUEST_SEND_SMS;
 
@@ -44,21 +48,14 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     private static final String TAG = "RequestForm";
 
     //Android Widgets
-    private CheckBox mChkbox_medical,mChkbox_fire,mChkbox_other;
+    private CheckBox mChkbox_medical, mChkbox_fire, mChkbox_other;
     private SeekBar mSeek_severity;
 
     //Variables
 
     private int severity;
 
-    //requestVariables
-    private String typeofemergency;
-    private int scaleofemergency;
-    private GeoPoint location;
-
-    //convert to vehicle and hospital objects
-    private String vehicleid;
-    private String hospitalid;
+    private ProgressDialog progress;
     private Requester requester;
 
     @Override
@@ -66,6 +63,10 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_form);
 
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Sending Request");
+        progress.setCancelable(false);
 
         mChkbox_medical = findViewById(R.id.checkBox_medical);
         mChkbox_fire = findViewById(R.id.checkBox_fire);
@@ -98,15 +99,16 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     public void onclickSend() {
 
-        Log.d(TAG,"presses send");
+        progress.show();
+        Log.d(TAG, "presses send");
         //createRequest();
-        String typeofemergency="";
-        if(mChkbox_medical.isChecked())
-            typeofemergency+="Medical ";
-        if(mChkbox_fire.isChecked())
-            typeofemergency+="Fire ";
-        if(mChkbox_other.isChecked())
-            typeofemergency+="Other";
+        String typeofemergency = "";
+        if (mChkbox_medical.isChecked())
+            typeofemergency += "Medical ";
+        if (mChkbox_fire.isChecked())
+            typeofemergency += "Fire ";
+        if (mChkbox_other.isChecked())
+            typeofemergency += "Other";
 
         int scaleofemergency = mSeek_severity.getProgress();
 
@@ -118,12 +120,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         Location currloc = new Location("");
         currloc.setLongitude(requester.getGeoPoint().getLongitude());
         currloc.setLatitude(requester.getGeoPoint().getLatitude());
-
-        GeoPoint location1 = new GeoPoint(23.1116, 72.5728);
-        GeoPoint location2 = new GeoPoint(23.1859, 72.6213);
-
-        ArrayList<Vehicle> vehicles_list = new ArrayList<Vehicle>();
-
 
 
         FirebaseFirestore.getInstance().collection("Cluster Main").get()
@@ -148,15 +144,14 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                         Vehicle nearestVehicle;
                         int vehicles_count = nearestCluster.getVehicles().size();
 
-                        int x = (int)(Math.random()*((vehicles_count-0)+1)) + 0;
+                        int x = ThreadLocalRandom.current().nextInt(0, vehicles_count);
                         nearestVehicle = nearestCluster.getVehicles().get(x);
-
-
 
 
                         FirebaseFirestore.getInstance().collection("Hospital").get()
                                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                     float temp = Float.MAX_VALUE;
+
                                     @Override
                                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                         Hospital nearestHospital = new Hospital();
@@ -195,7 +190,12 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                 showToast("Request failed");
                                             }
                                         });
+                                        progress.dismiss();
 
+                                        Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
+                                        intent.putExtra("request", request);
+                                        startActivity(intent);
+                                        finish();
                                     }
                                 });
 
@@ -205,8 +205,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     }
 
-    public void onclickSendSmS()
-    {
+    public void onclickSendSmS() {
 
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS)
@@ -221,15 +220,14 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                         MY_PERMISSIONS_REQUEST_SEND_SMS);
 
             }
-        }
-        else
+        } else
             sendSMS();
 
     }
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,@NonNull String permissions[],@NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_SEND_SMS: {
                 if (grantResults.length > 0
@@ -244,31 +242,26 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     }
 
-    public void sendSMS()
-    {
-        String typeofemergency="";
-        if(mChkbox_medical.isChecked())
-            typeofemergency+="Medical ";
-        if(mChkbox_fire.isChecked())
-            typeofemergency+="Fire ";
-        if(mChkbox_other.isChecked())
-            typeofemergency+="Other";
+    public void sendSMS() {
+        String typeofemergency = "";
+        if (mChkbox_medical.isChecked())
+            typeofemergency += "Medical ";
+        if (mChkbox_fire.isChecked())
+            typeofemergency += "Fire ";
+        if (mChkbox_other.isChecked())
+            typeofemergency += "Other";
 
         int scaleofemergency = mSeek_severity.getProgress();
 
         double latitude = 23.56, longitude = 26.56;
         GeoPoint location = new GeoPoint(latitude, longitude);
 
-        //Find nearby vehicle and store vehicle id in variable
-
         String vehicleid = "1";
 
-
-        //Find nearby Hospital and store hospital id in variable
         String hospitalid = "2";
 
         String message = "<#>" + "\n" + typeofemergency + "\n" + scaleofemergency + "\n" + location.getLatitude()
-                + "\n" + location.getLongitude() + "\n" + vehicleid + "\n" + hospitalid + "\n" + requester.getEmail() + "\n" +"MamEVHTp4dw";
+                + "\n" + location.getLongitude() + "\n" + vehicleid + "\n" + hospitalid + "\n" + requester.getEmail() + "\n" + "MamEVHTp4dw";
 
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage("8347747701", null, message, null, null);
@@ -276,37 +269,32 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     }
 
     private void createRequest() {
-        String typeofemergency=null;
-        if(mChkbox_medical.isChecked())
-            typeofemergency+="Medical ";
-        if(mChkbox_fire.isChecked())
-            typeofemergency+="Fire ";
-        if(mChkbox_other.isChecked())
-            typeofemergency+="Other";
+        String typeofemergency = null;
+        if (mChkbox_medical.isChecked())
+            typeofemergency += "Medical ";
+        if (mChkbox_fire.isChecked())
+            typeofemergency += "Fire ";
+        if (mChkbox_other.isChecked())
+            typeofemergency += "Other";
 
         int scaleofemergency = mSeek_severity.getProgress();
 
-        double latitude = 23.56, longitude = 26.56;
         GeoPoint location1 = new GeoPoint(23.1116, 72.5728);
         GeoPoint location2 = new GeoPoint(23.1859, 72.6213);
 
-
-        //Find nearby vehicle and store vehicle id in variable
-
-        String vehicleid = "1";
-
-        //Find nearby Hospital and store hospital id in variable
-        String hospitalid = "2";
-
-
-
     }
 
-    private void showToast(String msg)
-    {
-        Toast.makeText(RequestForm.this,msg,Toast.LENGTH_LONG).show();
+    private void showToast(String msg) {
+        Toast.makeText(RequestForm.this, msg, Toast.LENGTH_LONG).show();
     }
 
-
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Utilities.checkInternetConnectivity(this)){
+            findViewById(R.id.sendSMSButton).setVisibility(View.GONE);
+        }else{
+            findViewById(R.id.sendrequestButton).setVisibility(View.GONE);
+        }
+    }
 }

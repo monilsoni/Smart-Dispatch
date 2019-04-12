@@ -1,15 +1,9 @@
 package com.example.smartdispatch_auth.UI.Requester;
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,11 +11,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.smartdispatch_auth.Models.ClusterMarker;
+import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.PolylineData;
+import com.example.smartdispatch_auth.Models.Request;
+import com.example.smartdispatch_auth.Models.RequestClusterMarker;
 import com.example.smartdispatch_auth.Models.Requester;
+
+import com.example.smartdispatch_auth.Models.User;
+import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Utils.MyClusterManagerRenderer;
+import com.example.smartdispatch_auth.Utils.RequestClusterManagerRenderer;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -38,6 +37,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -54,10 +54,7 @@ import static com.example.smartdispatch_auth.Constants.MAPVIEW_BUNDLE_KEY;
 public class UserMapActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         View.OnClickListener,
-        GoogleMap.OnInfoWindowClickListener,
         GoogleMap.OnPolylineClickListener {
-
-    // Todo: Firestore offline feature!
 
     private static final String TAG = "UserMapActivity";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
@@ -66,38 +63,46 @@ public class UserMapActivity extends AppCompatActivity implements
     private MapView mMapView;
 
     // vars
-    private ArrayList<Requester> mUserList = new ArrayList<>();
-
+    private ArrayList<User> mUserLocations = new ArrayList<>();
     private GoogleMap mGoogleMap;
     private LatLngBounds mMapBoundary;
 
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private Requester mRequester;
+    private boolean toggle = true;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
-    private MyClusterManagerRenderer mClusterManagerRenderer;
-    private ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
+    private RequestClusterManagerRenderer mClusterManagerRenderer;
+    private ArrayList<RequestClusterMarker> mClusterMarkers = new ArrayList<>();
     private ArrayList<PolylineData> mPolylinesData = new ArrayList<>();
-    private Marker mSelectedMarker = null;
     private ArrayList<Marker> mTripMarkers = new ArrayList<>();
+
+
+    private Request mRequest;
+    private Requester mRequester;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
+        findViewById(R.id.btn_go).setOnClickListener(this);
 
 
         Intent intent = getIntent();
         if (intent != null) {
-            final ArrayList<Requester> users = intent.getParcelableArrayListExtra(getString(R.string.intent_user_list));
-            mUserList.addAll(users);
+            mRequest = intent.getParcelableExtra("request");
 
-            mRequester = intent.getParcelableExtra("requester");
-            Log.d(TAG, mRequester.toString());
+            mRequester = mRequest.getRequester();
+
+            mUserLocations.add(mRequest.getVehicle());
+            mUserLocations.add(mRequest.getHospital());
+            mUserLocations.add(mRequester);
+
+            Log.d(TAG, "Request: " + mRequest.toString());
+
         }
 
         initGoogleMap(savedInstanceState);
@@ -149,14 +154,6 @@ public class UserMapActivity extends AppCompatActivity implements
         }
     }
 
-    private void resetSelectedMarker() {
-        if (mSelectedMarker != null) {
-            mSelectedMarker.setVisible(true);
-            mSelectedMarker = null;
-            removeTripMarkers();
-        }
-    }
-
     private void addPolylinesToMap(final DirectionsResult result) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
@@ -172,7 +169,10 @@ public class UserMapActivity extends AppCompatActivity implements
 
                 double duration = Double.MAX_VALUE;
 
+                int i = 0;
                 for (DirectionsRoute route : result.routes) {
+                    i++;
+                    Log.d(TAG, "run: i=" + i);
                     Log.d(TAG, "run: leg: " + route.legs[0].toString());
                     List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
 
@@ -193,42 +193,36 @@ public class UserMapActivity extends AppCompatActivity implements
                     double tempDuration = route.legs[0].duration.inSeconds;
                     if (tempDuration < duration) {
                         duration = tempDuration;
-                        onPolylineClick(polyline);
+                        onPolylineClick(polyline); // this simulates the click. Important!
                         zoomRoute(polyline.getPoints());
                     }
-
-                    mSelectedMarker.setVisible(false);
 
                 }
             }
         });
     }
 
-    private void calculateDirections(Marker marker) {
+    private void calculateDirections(GeoPoint start, GeoPoint end) {
         Log.d(TAG, "calculateDirections: calculating directions.");
 
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
-                marker.getPosition().latitude,
-                marker.getPosition().longitude
+                end.getLatitude(),
+                end.getLongitude()
         );
         DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
 
-        directions.alternatives(true);
+        directions.alternatives(false);
         directions.origin(
                 new com.google.maps.model.LatLng(
-                        mRequester.getGeoPoint().getLatitude(),
-                        mRequester.getGeoPoint().getLongitude()
+                        start.getLatitude(),
+                        start.getLongitude()
                 )
         );
         Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
-                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
-                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
-
                 addPolylinesToMap(result);
             }
 
@@ -259,41 +253,82 @@ public class UserMapActivity extends AppCompatActivity implements
         Log.d(TAG, "retrieveUserLocations: retrieving location of all users");
 
         try {
-            for (final ClusterMarker clusterMarker : mClusterMarkers) {
+            for (final RequestClusterMarker clusterMarker : mClusterMarkers) {
 
-                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_users))
-                        .document(clusterMarker.getRequester().getUser_id());
-
-                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-
-                            final Requester updatedUserLocation = task.getResult().toObject(Requester.class);
-
-                            // update the location
-                            for (int i = 0; i < mClusterMarkers.size(); i++) {
-                                try {
-                                    if (mClusterMarkers.get(i).getRequester().getUser_id().equals(updatedUserLocation.getUser_id())) {
-
-                                        LatLng updatedLatLng = new LatLng(
+                switch (clusterMarker.getUser().getType()){
+                    case "requester": {
+                        DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                                .collection(getString(R.string.collection_users))
+                                .document(clusterMarker.getUser().getUser_id());
+                        userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    if(document.exists()){
+                                        Requester updatedUserLocation = task.getResult().toObject(Requester.class);
+                                        clusterMarker.setPosition(new LatLng(
                                                 updatedUserLocation.getGeoPoint().getLatitude(),
                                                 updatedUserLocation.getGeoPoint().getLongitude()
-                                        );
-
-                                        mClusterMarkers.get(i).setPosition(updatedLatLng);
-                                        mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+                                        ));
+                                    }else{
+                                        Log.d(TAG, "onComplete: Did not find any documents like this");
                                     }
-
-
-                                } catch (NullPointerException e) {
-                                    Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                 }
                             }
-                        }
+                        });
+                        break;
                     }
-                });
+
+                    case "vehicle": {
+                        DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                                .collection(getString(R.string.collection_vehicles))
+                                .document(clusterMarker.getUser().getUser_id());
+                        userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    if(document.exists()){
+                                        Vehicle updatedUserLocation = task.getResult().toObject(Vehicle.class);
+                                        clusterMarker.setPosition(new LatLng(
+                                                updatedUserLocation.getGeoPoint().getLatitude(),
+                                                updatedUserLocation.getGeoPoint().getLongitude()
+                                        ));
+                                    }else{
+                                        Log.d(TAG, "onComplete: Did not find any documents like this");
+                                    }
+
+                                }
+                            }
+                        });
+                        break;
+                    }
+
+                    case "hospital": {
+                        DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                                .collection(getString(R.string.collection_hospital))
+                                .document(clusterMarker.getUser().getUser_id());
+
+                        userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    if(document.exists()){
+                                        Hospital updatedUserLocation = task.getResult().toObject(Hospital.class);
+                                        clusterMarker.setPosition(new LatLng(
+                                                updatedUserLocation.getGeoPoint().getLatitude(),
+                                                updatedUserLocation.getGeoPoint().getLongitude()
+                                        ));
+                                    }else{
+                                        Log.d(TAG, "onComplete: Did not find any documents like this");
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
             }
         } catch (IllegalStateException e) {
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
@@ -325,44 +360,40 @@ public class UserMapActivity extends AppCompatActivity implements
         if (mGoogleMap != null) {
 
             resetMap();
-            Log.d(TAG, "UserList Size: " + mUserList.size());
 
             if (mClusterManager == null) {
-                mClusterManager = new ClusterManager<ClusterMarker>(this, mGoogleMap);
+                mClusterManager = new ClusterManager<RequestClusterMarker>(this, mGoogleMap);
             }
             if (mClusterManagerRenderer == null) {
-                mClusterManagerRenderer = new MyClusterManagerRenderer(
+                mClusterManagerRenderer = new RequestClusterManagerRenderer(
                         this,
                         mGoogleMap,
                         mClusterManager
                 );
                 mClusterManager.setRenderer(mClusterManagerRenderer);
             }
-            mGoogleMap.setOnInfoWindowClickListener(this);
+            //mGoogleMap.setOnInfoWindowClickListener(this);
 
-            for (Requester requester : mUserList) {
+            for (User user : mUserLocations) {
 
-                Log.d(TAG, "addMapMarkers: location: " + requester.getGeoPoint().toString());
+                Log.d(TAG, "addMapMarkers: location: " + user.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    Log.d(TAG, "Requester: " + requester.toString());
-
-                    if (requester.getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                         snippet = "This is you";
                     } else {
-                        snippet = "Determine route to " + requester.getEmail() + "?";
+                        snippet = "Determine route to " + user.getEmail() + "?";
                     }
 
                     int avatar = R.drawable.ic_launcher_background; // set the default avatar
 
-                    ClusterMarker newClusterMarker = new ClusterMarker(
-                            new LatLng(requester.getGeoPoint().getLatitude(), requester.getGeoPoint().getLongitude()),
-                            requester.getName(),
+                    RequestClusterMarker newClusterMarker = new RequestClusterMarker(
+                            new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),
+                            user.getEmail(),
                             snippet,
                             avatar,
-                            requester
+                            user
                     );
-                    Log.d(TAG, "Inside the loop!");
                     mClusterManager.addItem(newClusterMarker);
                     mClusterMarkers.add(newClusterMarker);
 
@@ -371,7 +402,6 @@ public class UserMapActivity extends AppCompatActivity implements
                 }
 
             }
-            Log.d(TAG, "ClusterMarker Size: " + mClusterMarkers.size());
             mClusterManager.cluster();
 
             setCameraView();
@@ -384,17 +414,19 @@ public class UserMapActivity extends AppCompatActivity implements
         int height = getResources().getDisplayMetrics().heightPixels;
         int padding = (int) (width * 0.12); // offset from edges of the map 12% of screen
 
-        double bottomBoundary = mRequester.getGeoPoint().getLatitude() - 0.1;
-        double leftBoundary = mRequester.getGeoPoint().getLongitude() - 0.1;
-        double topBoundary = mRequester.getGeoPoint().getLatitude() + 0.1;
-        double rightBoundary = mRequester.getGeoPoint().getLongitude() + 0.1;
+
+        // Set a boundary to start
+        double bottomBoundary = mRequester.getGeoPoint().getLatitude() - .1;
+        double leftBoundary = mRequester.getGeoPoint().getLongitude() - .1;
+        double topBoundary = mRequester.getGeoPoint().getLatitude() + .1;
+        double rightBoundary = mRequester.getGeoPoint().getLongitude() + .1;
 
         mMapBoundary = new LatLngBounds(
                 new LatLng(bottomBoundary, leftBoundary),
                 new LatLng(topBoundary, rightBoundary)
         );
 
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary,  width, height, padding));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
     }
 
@@ -434,14 +466,10 @@ public class UserMapActivity extends AppCompatActivity implements
 
     @Override
     public void onMapReady(GoogleMap map) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+
         mGoogleMap = map;
-        mGoogleMap.setOnPolylineClickListener(this);
         addMapMarkers();
+        mGoogleMap.setOnPolylineClickListener(this);
 
     }
 
@@ -471,67 +499,21 @@ public class UserMapActivity extends AppCompatActivity implements
                 addMapMarkers();
                 break;
             }
-        }
-    }
 
-    @Override
-    public void onInfoWindowClick(final Marker marker) {
-        if (marker.getTitle().contains("Trip #")) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Open Google Maps?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            String latitude = String.valueOf(marker.getPosition().latitude);
-                            String longitude = String.valueOf(marker.getPosition().longitude);
-                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
-
-                            try {
-                                if (mapIntent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
-                                    startActivity(mapIntent);
-                                }
-                            } catch (NullPointerException e) {
-                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage());
-                                Toast.makeText(getApplicationContext(), "Couldn't open map", Toast.LENGTH_SHORT).show();
-                            }
-
-                        }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            dialog.cancel();
-                        }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-        } else {
-            if (marker.getSnippet().equals("This is you")) {
-                marker.hideInfoWindow();
-            } else {
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(marker.getSnippet())
-                        .setCancelable(true)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                resetSelectedMarker();
-                                mSelectedMarker = marker;
-                                calculateDirections(marker);
-                                dialog.dismiss();
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                dialog.cancel();
-                            }
-                        });
-                final AlertDialog alert = builder.create();
-                alert.show();
+            case R.id.btn_go:{
+                if(toggle){
+                    calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                            mRequest.getRequester().getGeoPoint());
+                    toggle = false;
+                }else{
+                    calculateDirections(mRequest.getRequester().getGeoPoint(),
+                            mRequest.getHospital().getGeoPoint());
+                    toggle = true;
+                }
             }
         }
     }
+
 
     @Override
     public void onPolylineClick(Polyline polyline) {
@@ -544,6 +526,8 @@ public class UserMapActivity extends AppCompatActivity implements
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
 
+                Toast.makeText(UserMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
+                /*
                 LatLng endLocation = new LatLng(
                         polylineData.getLeg().endLocation.lat,
                         polylineData.getLeg().endLocation.lng
@@ -556,7 +540,7 @@ public class UserMapActivity extends AppCompatActivity implements
                         ));
 
                 mTripMarkers.add(marker);
-                marker.showInfoWindow();
+                marker.showInfoWindow();*/
             } else {
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);

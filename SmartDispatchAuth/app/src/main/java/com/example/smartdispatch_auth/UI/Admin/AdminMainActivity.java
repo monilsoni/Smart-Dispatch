@@ -46,7 +46,7 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
 
         progress = new ProgressDialog(this);
         progress.setTitle("Loading");
-        progress.setMessage("Preparing the interface");
+        progress.setMessage("Creating clusters and assigning vehicles...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
     }

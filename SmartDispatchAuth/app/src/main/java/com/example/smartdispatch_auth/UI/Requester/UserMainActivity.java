@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth.UI.Requester;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,10 +21,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.RequesterLocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
+import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -43,7 +46,6 @@ import java.util.ArrayList;
 
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
-// todo: cached
 // todo: agar net chal raha hai to sms button nai
 // todo calllllllll
 // todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
@@ -60,9 +62,10 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     // Variables
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
-    private ArrayList<Requester> mUserList = new ArrayList<>();
+    private Request mRequest;
     private boolean set = false;
     Source source = Source.DEFAULT;
+    ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +83,18 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.submit_request).setOnClickListener(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        Intent intent = getIntent();
+        if(intent.getParcelableExtra("request") != null){
+            mRequest = intent.getParcelableExtra("request");
+            findViewById(R.id.submit_request).setVisibility(View.GONE);
+        }else{
+            findViewById(R.id.look_at_map).setVisibility(View.GONE);
+        }
+
+        progress = new ProgressDialog(this);
+        progress.setMessage("Loading your data");
+        progress.setCancelable(false);
     }
 
     /*  GPS Service  */
@@ -130,9 +145,11 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 }
 
                 Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
-                intent.putParcelableArrayListExtra(getString(R.string.intent_user_list), mUserList);
-                intent.putExtra("requester", mRequester);
-                Log.d(TAG, mRequester.toString());
+                intent.putExtra("request", mRequest);
+                if(mRequest != null)
+                    Log.d(TAG, "onClick: request " + mRequest.toString() );
+                else
+                    Log.d(TAG, "onClick: Request is null");
                 startActivity(intent);
                 break;
             }
@@ -151,22 +168,27 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         if (!set) {
             Utilities.showDialog(mProgressBar);
+            progress.show();
         }
         if (mRequester == null) {
             mRequester = new Requester();
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
+                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
             userRef.get(source).addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "onComplete: successfully set the requester client.");
-                        mRequester = task.getResult().toObject(Requester.class);
-                        Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
-                        ((UserClient) (getApplicationContext())).setRequester(mRequester);
+                        if(task.getResult().exists()){
+                            Log.d(TAG, "onComplete: successfully set the requester client.");
+                            mRequester = task.getResult().toObject(Requester.class);
+                            Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
 
-                        getLastKnownLocation();
+                            ((UserClient) (getApplicationContext())).setRequester(mRequester);
+
+                            getLastKnownLocation();
+                        }
+
                     }
                 }
             });
@@ -199,9 +221,10 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                     }
                     mRequester.setGeoPoint(geoPoint);
 
+                    progress.dismiss();
+
                     /* just add the requester to the list. It does not matter what the geopoint is
                      * since the UserMapActivity is going to fetch the location anyway */
-                    mUserList.add(mRequester);
                     startLocationService();
                     display();
                 }
@@ -222,7 +245,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         final DocumentReference docRef = FirebaseFirestore.getInstance()
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid());
+                .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override

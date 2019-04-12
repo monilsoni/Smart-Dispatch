@@ -15,6 +15,7 @@ import com.example.smartdispatch_auth.UI.Admin.AdminMainActivity;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
 import com.example.smartdispatch_auth.UI.Requester.UserMainActivity;
 import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
+import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -40,7 +41,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         progress = new ProgressDialog(this);
         progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
+        progress.setMessage("Logging In");
         progress.setCancelable(false);
 
         mEmail = findViewById(R.id.email);
@@ -154,7 +155,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             progress.show();
 
-            /*
+
             boolean check = true;
             if(!authenticator.equals("requester")){
                 if(!email.contains("@smartdispatch.gov.in")){
@@ -169,8 +170,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             if(!check){
                 Toast.makeText(LoginActivity.this, "Invalid Email Address", Toast.LENGTH_SHORT).show();
-                Utilities.hideDialog(mProgressBar);
-            }*/
+                progress.hide();
+                return;
+            }
 
 
 

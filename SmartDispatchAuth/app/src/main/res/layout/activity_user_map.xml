@@ -23,4 +23,16 @@
         android:background="@color/White"
         android:src="@drawable/ic_refresh_black_24dp" />
 
+    <ImageButton
+        android:id="@+id/btn_go"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/White"
+        android:src="@drawable/ic_refresh_black_24dp" />
+
+
 </RelativeLayout>

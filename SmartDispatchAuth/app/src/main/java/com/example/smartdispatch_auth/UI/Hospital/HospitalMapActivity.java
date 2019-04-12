@@ -53,8 +53,6 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
-import org.w3c.dom.Document;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +61,6 @@ import static com.example.smartdispatch_auth.Constants.MAPVIEW_BUNDLE_KEY;
 public class HospitalMapActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         View.OnClickListener,
-        GoogleMap.OnInfoWindowClickListener,
         GoogleMap.OnPolylineClickListener {
 
     private static final String TAG = "HospitalMapActivity";
@@ -80,7 +77,6 @@ public class HospitalMapActivity extends AppCompatActivity implements
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private Requester mUserPosition;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -92,30 +88,26 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
 
     private Request request;
-    private Requester mRequester;
-    private Vehicle vehicle;
-    private Hospital hospital;
+    private Hospital mHospital;
+    private boolean toggle = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_map);
+        setContentView(R.layout.activity_hospital_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
+        findViewById(R.id.btn_go).setOnClickListener(this);
 
 
         Intent intent = getIntent();
         if (intent != null) {
             request = intent.getParcelableExtra("request");
 
-            vehicle = request.getVehicle();
-            hospital = request.getHospital();
-            mRequester = request.getRequester();
+            mHospital = request.getHospital();
 
-            mUserPosition = mRequester;
-
-            mUserLocations.add(vehicle);
-            mUserLocations.add(hospital);
-            mUserLocations.add(mRequester);
+            mUserLocations.add(request.getVehicle());
+            mUserLocations.add(mHospital);
+            mUserLocations.add(request.getRequester());
 
             Log.d(TAG, "Request: " + request.toString());
 
@@ -218,30 +210,35 @@ public class HospitalMapActivity extends AppCompatActivity implements
                         zoomRoute(polyline.getPoints());
                     }
 
-                    mSelectedMarker.setVisible(false);
+                    //mSelectedMarker.setVisible(false);
 
                 }
             }
         });
     }
 
-    private void calculateDirections(Marker marker) {
+    private void calculateDirections(GeoPoint start, GeoPoint waypoint, GeoPoint end) {
         Log.d(TAG, "calculateDirections: calculating directions.");
 
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
-                marker.getPosition().latitude,
-                marker.getPosition().longitude
+                end.getLatitude(),
+                end.getLongitude()
         );
         DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
 
         directions.alternatives(false);
         directions.origin(
                 new com.google.maps.model.LatLng(
-                        hospital.getGeoPoint().getLatitude(),
-                        hospital.getGeoPoint().getLongitude()
+                        start.getLatitude(),
+                        start.getLongitude()
                 )
         );
         Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        /*directions.waypoints(new com.google.maps.model.LatLng(
+                waypoint.getLatitude(),
+                waypoint.getLongitude()
+        ));*/
+
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
@@ -394,20 +391,23 @@ public class HospitalMapActivity extends AppCompatActivity implements
                 );
                 mClusterManager.setRenderer(mClusterManagerRenderer);
             }
-            mGoogleMap.setOnInfoWindowClickListener(this);
+            //mGoogleMap.setOnInfoWindowClickListener(this);
 
             for (User user : mUserLocations) {
 
                 Log.d(TAG, "addMapMarkers: location: " + user.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                         snippet = "This is you";
                     } else {
                         snippet = "Determine route to " + user.getEmail() + "?";
                     }
 
                     int avatar = R.drawable.ic_launcher_background; // set the default avatar
+                    if(user.getType().equals("vehicle")){
+                        avatar = R.drawable.ic_notif;
+                    }
 
                     RequestClusterMarker newClusterMarker = new RequestClusterMarker(
                             new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),
@@ -438,10 +438,10 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
 
         // Set a boundary to start
-        double bottomBoundary = hospital.getGeoPoint().getLatitude() - .1;
-        double leftBoundary = hospital.getGeoPoint().getLongitude() - .1;
-        double topBoundary = hospital.getGeoPoint().getLatitude() + .1;
-        double rightBoundary = hospital.getGeoPoint().getLongitude() + .1;
+        double bottomBoundary = mHospital.getGeoPoint().getLatitude() - .1;
+        double leftBoundary = mHospital.getGeoPoint().getLongitude() - .1;
+        double topBoundary = mHospital.getGeoPoint().getLatitude() + .1;
+        double rightBoundary = mHospital.getGeoPoint().getLongitude() + .1;
 
         mMapBoundary = new LatLngBounds(
                 new LatLng(bottomBoundary, leftBoundary),
@@ -520,67 +520,24 @@ public class HospitalMapActivity extends AppCompatActivity implements
                 addMapMarkers();
                 break;
             }
-        }
-    }
 
-    @Override
-    public void onInfoWindowClick(final Marker marker) {
-        if (marker.getTitle().contains("Trip #")) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Open Google Maps?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            String latitude = String.valueOf(marker.getPosition().latitude);
-                            String longitude = String.valueOf(marker.getPosition().longitude);
-                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
+            case R.id.btn_go:{
+                if(toggle){
+                    calculateDirections(request.getVehicle().getGeoPoint(),
+                            request.getRequester().getGeoPoint(),
+                            request.getHospital().getGeoPoint());
+                    toggle = false;
+                }else{
+                    calculateDirections(request.getVehicle().getGeoPoint(),
+                            request.getRequester().getGeoPoint(),
+                            request.getHospital().getGeoPoint());
+                    toggle = true;
+                }
 
-                            try {
-                                if (mapIntent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
-                                    startActivity(mapIntent);
-                                }
-                            } catch (NullPointerException e) {
-                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage());
-                                Toast.makeText(getApplicationContext(), "Couldn't open map", Toast.LENGTH_SHORT).show();
-                            }
-
-                        }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            dialog.cancel();
-                        }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-        } else {
-            if (marker.getSnippet().equals("This is you")) {
-                marker.hideInfoWindow();
-            } else {
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(marker.getSnippet())
-                        .setCancelable(true)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                resetSelectedMarker();
-                                mSelectedMarker = marker;
-                                calculateDirections(marker);
-                                dialog.dismiss();
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                dialog.cancel();
-                            }
-                        });
-                final AlertDialog alert = builder.create();
-                alert.show();
             }
         }
     }
+
 
     @Override
     public void onPolylineClick(Polyline polyline) {

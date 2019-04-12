@@ -95,13 +95,13 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
 
-                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getUid(), aadhar_number,
+                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getCurrentUser().getUid(), aadhar_number,
                                     phone_number, name, sex, age,
                                     new GeoPoint(0, 0), null, "requester");
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection(getString(R.string.collection_users))
-                                    .document(FirebaseAuth.getInstance().getUid());
+                                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                             newUserRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override

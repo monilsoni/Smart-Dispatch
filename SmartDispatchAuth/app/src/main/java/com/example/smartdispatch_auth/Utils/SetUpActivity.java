@@ -37,6 +37,7 @@ public class SetUpActivity extends AppCompatActivity {
 
     private static final String TAG = "SetUpActivity";
 
+    // Todo remove this activity altogether
     // widgets
     private TextView internetCheck, gpsCheck;
     IntentFilter filter;

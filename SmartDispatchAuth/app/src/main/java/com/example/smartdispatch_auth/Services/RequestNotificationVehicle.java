@@ -60,6 +60,7 @@ public class RequestNotificationVehicle extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        FirebaseFirestore.getInstance().collection("Vehicles").document(FirebaseAuth.getInstance().getUid()).set(token, SetOptions.merge());
+        if(FirebaseAuth.getInstance().getCurrentUser().getUid() != null)
+            FirebaseFirestore.getInstance().collection("Vehicles").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
     }
 }

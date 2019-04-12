@@ -17,7 +17,6 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -50,7 +49,6 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
                 .setContentInfo("Info");
 
         notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
-        Log.d("huad", "asd");
         Intent i = new Intent("send");
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
 
@@ -61,6 +59,7 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getUid()).set(token, SetOptions.merge());
+        if(FirebaseAuth.getInstance().getCurrentUser().getUid() != null)
+            FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
     }
 }

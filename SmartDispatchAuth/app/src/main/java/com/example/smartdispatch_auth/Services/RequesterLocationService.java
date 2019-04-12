@@ -123,8 +123,10 @@ public class RequesterLocationService extends Service {
                         if (location != null) {
                             Requester requester = ((UserClient)(getApplicationContext())).getRequester();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            requester.setGeoPoint(geoPoint);
-                            saveUserLocation(requester);
+                            if(requester != null){
+                                requester.setGeoPoint(geoPoint);
+                                saveUserLocation(requester);
+                            }
                         }
                     }
                 },
@@ -136,7 +138,7 @@ public class RequesterLocationService extends Service {
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
+                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
             locationRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
