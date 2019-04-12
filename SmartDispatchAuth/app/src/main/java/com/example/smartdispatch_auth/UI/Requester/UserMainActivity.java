@@ -193,7 +193,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                         mRequester.setGeoPoint(geoPoint);
 
                         /* just add the requester to the list. It does not matter what the geopoint is
-                        * since the UserMapActivity is going to fetch the location anyway */
+                         * since the UserMapActivity is going to fetch the location anyway */
                         mUserList.add(mRequester);
                     } catch (NullPointerException e) {
                         Log.d(TAG, "getLastKnownLocation: mLocation is null.");
@@ -244,21 +244,20 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         });
 
 
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(isMapsEnabled()){
+        if (isMapsEnabled()) {
             getUserDetails();
         }
     }
 
-    public boolean isMapsEnabled(){
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+    public boolean isMapsEnabled() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
             return false;
         }
@@ -271,7 +270,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
-
                 getUserDetails();
             }
         }
