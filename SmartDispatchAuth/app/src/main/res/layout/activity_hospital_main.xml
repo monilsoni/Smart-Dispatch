@@ -31,14 +31,6 @@
         android:scrollbars="vertical"
         android:layout_marginTop="50dp"/>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:visibility="invisible" />
-
     <TextView
         android:id="@+id/empty_list_message"
         android:layout_width="wrap_content"

@@ -137,8 +137,7 @@ public class HospitalLocationService extends Service {
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_hospital))
-                    // Todo: Change this to FireAuth.getInstance().getUser_id()
-                    .document(hospital.getUser_id());
+                    .document(FirebaseAuth.getInstance().getUid());
 
             locationRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override

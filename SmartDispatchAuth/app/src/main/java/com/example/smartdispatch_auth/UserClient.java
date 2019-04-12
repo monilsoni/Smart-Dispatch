@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth;
 import android.app.Application;
 
 import com.example.smartdispatch_auth.Models.Hospital;
+import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.Vehicle;
@@ -12,6 +13,15 @@ public class UserClient extends Application {
     private Requester requester = null;
     private Hospital hospital = null;
     private Vehicle vehicle = null;
+    private Request request = null;
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
+    }
 
     public Hospital getHospital() {
         return hospital;

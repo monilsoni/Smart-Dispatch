@@ -37,7 +37,7 @@ public class Hospital extends User implements Parcelable {
     public Hospital() {
     }
 
-    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id) {
+    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id, String type) {
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
         this.hospital_name = hospital_name;

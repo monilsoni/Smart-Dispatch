@@ -22,7 +22,7 @@ public class Vehicle extends User implements Parcelable {
     };
     private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number;
 
-    public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String email, String user_id, GeoPoint geoPoint, Date timeStamp) {
+    public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String email, String user_id, GeoPoint geoPoint, Date timeStamp, String type) {
         this.driver_name = driver_name;
         this.driver_age = driver_age;
         this.vehicle_number = vehicle_number;
@@ -33,7 +33,7 @@ public class Vehicle extends User implements Parcelable {
         this.user_id = user_id;
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
-        this.type = "vehicle";
+        this.type = type;
     }
 
     public Vehicle() {

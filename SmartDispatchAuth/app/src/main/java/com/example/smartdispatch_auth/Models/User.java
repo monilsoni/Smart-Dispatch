@@ -9,7 +9,7 @@ public class User {
 
     protected String email, user_id, type; // So that the child functions can access these variables
     protected GeoPoint geoPoint;
-    protected  @ServerTimestamp
+    protected @ServerTimestamp
     Date timeStamp;
 
     public String getEmail() {

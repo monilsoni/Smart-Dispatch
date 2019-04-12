@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth.UI.Hospital;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -57,7 +58,7 @@ public class HospitalMainActivity extends AppCompatActivity {
 
     // widgets
     TextView emptyListMessage;
-    ProgressBar mProgressBar;
+    ProgressDialog progress;
 
     // vars
     private FusedLocationProviderClient mFusedLocationClient;
@@ -109,7 +110,12 @@ public class HospitalMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_hospital_main);
 
         emptyListMessage = findViewById(R.id.empty_list_message);
-        mProgressBar = findViewById(R.id.progressBar);
+
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
         recyclerView = (android.support.v7.widget.RecyclerView) findViewById(R.id.recyclerView);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -122,7 +128,7 @@ public class HospitalMainActivity extends AppCompatActivity {
     }
 
     private void updateUI(FirebaseUser user) {
-        Utilities.showDialog(mProgressBar);
+        progress.show();
         recurrentRead = 0;
         requestList = new ArrayList<>();
         requests = new ArrayList<>();
@@ -139,8 +145,9 @@ public class HospitalMainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Request request = document.toObject(Request.class);
+                                    String id = request.getHospital().getUser_id();
 
-                                    if (true) {
+                                    if (FirebaseAuth.getInstance().getUid() == id) {
                                         Requester usr = request.getRequester();
                                         Vehicle v = request.getVehicle();
                                         String usrname = usr.getName(), usrage = usr.getAge(), usrsex = usr.getSex();
@@ -188,14 +195,14 @@ public class HospitalMainActivity extends AppCompatActivity {
 
 
                                     }
-                                    Log.d("data", document.getId() + " => " + document.getData());
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
 
                                 }
                             } else {
-                                Log.d("data", "Error getting documents: ", task.getException());
+                                Log.d(TAG, "Error getting documents: ", task.getException());
                             }
 
-                            Utilities.hideDialog(mProgressBar);
+                            progress.dismiss();
                             if (requestList.size() != 0)
                                 updateList();
 

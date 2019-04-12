@@ -11,23 +11,24 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.example.smartdispatch_auth.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class RequestNotificationService extends FirebaseMessagingService {
+public class RequestNotificationVehicle extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
+        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
     }
 
-    private void showNotification(String title, String body, Map Data) {
+    private void showNotification(String title, String body) {
         NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         String NOTIFICATION_CHANNEL_ID = "com.example.myapplication.test";
 
@@ -49,13 +50,7 @@ public class RequestNotificationService extends FirebaseMessagingService {
 
         notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
         Log.d("huad", "asd");
-        Intent i = new Intent("send");
-        ArrayList<String> list = new ArrayList<>();
-        for(Object key: Data.keySet()){
-            list.add(key.toString());
-            list.add(Data.get(key).toString());
-        }
-        i.putStringArrayListExtra("Data", list);
+        Intent i = new Intent("get");
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
 
     }
@@ -65,6 +60,6 @@ public class RequestNotificationService extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        FirebaseFirestore.getInstance().collection("Hospital").document("Hospital1").set(token);
+        FirebaseFirestore.getInstance().collection("Vehicles").document(FirebaseAuth.getInstance().getUid()).set(token, SetOptions.merge());
     }
 }

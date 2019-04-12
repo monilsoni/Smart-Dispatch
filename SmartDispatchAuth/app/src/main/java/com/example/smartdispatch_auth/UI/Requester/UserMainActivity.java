@@ -37,10 +37,17 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Source;
 
 import java.util.ArrayList;
 
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+
+// todo: cached
+// todo: agar net chal raha hai to sms button nai
+// todo calllllllll
+// todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
+// todo vehicle detect request object
 
 public class UserMainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -55,6 +62,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private Requester mRequester;
     private ArrayList<Requester> mUserList = new ArrayList<>();
     private boolean set = false;
+    Source source = Source.DEFAULT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,7 +157,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getUid());
 
-            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            userRef.get(source).addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
@@ -241,6 +249,10 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
+        if(Utilities.checkInternetConnectivity(this) == false){
+            source = Source.CACHE;
+        }
+
         if (isMapsEnabled()) {
             getUserDetails();
         }

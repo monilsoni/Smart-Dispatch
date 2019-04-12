@@ -1,5 +1,6 @@
 package com.example.smartdispatch_auth.UI;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -27,8 +28,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private static final String TAG = "LoginActivity";
 
+    private ProgressDialog progress;
+
     private EditText mEmail, mPassword;
-    private ProgressBar mProgressBar;
 
     // vars
     private String authenticator;
@@ -39,7 +41,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mProgressBar = findViewById(R.id.progressBar);
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false);
+
         mEmail = findViewById(R.id.email);
         mPassword = findViewById(R.id.password);
 
@@ -149,7 +155,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         if (email != null && password != null) {
 
-            Utilities.showDialog(mProgressBar);
+            progress.show();
 
             /*
             boolean check = true;
@@ -189,7 +195,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                                 Toast.makeText(LoginActivity.this, "Authentication failed. ", Toast.LENGTH_SHORT).show();
                             }
-                            Utilities.hideDialog(mProgressBar);
+                            progress.dismiss();
                         }
                     });
         } else {

@@ -51,6 +51,7 @@ public class SetUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_up);
 
+
         internetCheck = findViewById(R.id.internet_check);
         gpsCheck = findViewById(R.id.gps_check);
 

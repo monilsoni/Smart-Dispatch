@@ -20,13 +20,9 @@
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/textEmailLogin">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
 
             <RelativeLayout
                 android:id="@+id/email_login_form"
@@ -117,27 +113,15 @@
 
             </RelativeLayout>
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="400dp"
-                android:visibility="invisible" />
-
-
-
-        </LinearLayout>
 
     </ScrollView>
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_marginTop="8dp"
-        android:orientation="vertical">
+        android:layout_below="@id/login_form">
 
 
         <Button
@@ -145,7 +129,7 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_above="@+id/divider4"
-            android:layout_gravity="center_horizontal"
+            android:layout_centerHorizontal="true"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
@@ -169,6 +153,6 @@
             android:layout_height="12dp"
             android:layout_alignParentBottom="true"
             android:background="@color/colorPrimaryDark" />
-    </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>
