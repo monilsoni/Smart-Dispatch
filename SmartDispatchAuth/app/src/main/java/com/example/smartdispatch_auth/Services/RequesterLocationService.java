@@ -1,5 +1,7 @@
 package com.example.smartdispatch_auth.Services;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 
 import android.Manifest;
@@ -14,6 +16,7 @@ import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -75,7 +78,21 @@ public class RequesterLocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand: called.");
         getLocation();
-        return START_NOT_STICKY;
+        return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceTask = new Intent(getApplicationContext(),this.getClass());
+        restartServiceTask.setPackage(getPackageName());
+        PendingIntent restartPendingIntent = PendingIntent.getService(getApplicationContext(), 1,restartServiceTask, PendingIntent.FLAG_ONE_SHOT);
+        AlarmManager myAlarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        myAlarmService.set(
+                AlarmManager.ELAPSED_REALTIME,
+                SystemClock.elapsedRealtime() + 1000,
+                restartPendingIntent);
+
+        super.onTaskRemoved(rootIntent);
     }
 
     private void getLocation() {

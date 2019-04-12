@@ -22,7 +22,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.example.smartdispatch_auth.Models.Hospital;
-import com.example.smartdispatch_auth.Models.Requester;
+import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,13 +32,12 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
-public class HospitalLocationService extends Service {
-    private static final String TAG = "HospLocationService";
+public class VehicleLocationService extends Service {
+    private static final String TAG = "VehicleLocationService";
 
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
@@ -122,31 +121,31 @@ public class HospitalLocationService extends Service {
 
                         if (location != null) {
 
-                            Hospital hospital = ((UserClient)(getApplicationContext())).getHospital();
+                            Vehicle vehicle = ((UserClient)(getApplicationContext())).getVehicle();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            hospital.setGeoPoint(geoPoint);
-                            saveUserLocation(hospital);
+                            vehicle.setGeoPoint(geoPoint);
+                            saveUserLocation(vehicle);
                         }
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-    private void saveUserLocation(final Hospital hospital){
+    private void saveUserLocation(final Vehicle vehicle){
 
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_hospital))
                     // Todo: Change this to FireAuth.getInstance().getUser_id()
-                    .document(hospital.getUser_id());
+                    .document(vehicle.getUser_id());
 
-            locationRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {
+            locationRef.set(vehicle).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
                         Log.d(TAG, "onComplete: \ninserted user location into database." +
-                                "\n latitude: " + hospital.getGeoPoint().getLatitude() +
-                                "\n longitude: " + hospital.getGeoPoint().getLongitude());
+                                "\n latitude: " + vehicle.getGeoPoint().getLatitude() +
+                                "\n longitude: " + vehicle.getGeoPoint().getLongitude());
                     }
                 }
             });
