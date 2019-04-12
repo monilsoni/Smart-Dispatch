@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -22,9 +21,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Requester;
-import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Services.LocationService;
+import com.example.smartdispatch_auth.Services.RequesterLocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
@@ -33,16 +31,12 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -84,7 +78,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, LocationService.class);
+            Intent serviceIntent = new Intent(this, RequesterLocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 UserMainActivity.this.startForegroundService(serviceIntent);
@@ -97,7 +91,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+            if ("com.example.smartdispatch_auth.Services.RequesterLocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }

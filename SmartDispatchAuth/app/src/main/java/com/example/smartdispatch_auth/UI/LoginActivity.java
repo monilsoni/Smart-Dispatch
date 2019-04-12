@@ -151,6 +151,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             Utilities.showDialog(mProgressBar);
 
+            /*
             boolean check = true;
             if(!authenticator.equals("requester")){
                 if(!email.contains("@smartdispatch.gov.in")){
@@ -166,7 +167,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if(!check){
                 Toast.makeText(LoginActivity.this, "Invalid Email Address", Toast.LENGTH_SHORT).show();
                 Utilities.hideDialog(mProgressBar);
-            }
+            }*/
 
 
 
