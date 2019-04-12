@@ -2,11 +2,17 @@ package com.example.smartdispatch_auth.UI.Requester;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -40,6 +46,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+
 public class UserMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "UserMainActivity";
@@ -49,7 +57,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private ProgressBar mProgressBar;
 
     // Variables
-    private ListenerRegistration mUserListEventListener;
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
     private ArrayList<Requester> mUserList = new ArrayList<>();
@@ -71,7 +78,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.submit_request).setOnClickListener(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        getUserDetails();
     }
 
     /*  GPS Service  */
@@ -101,14 +107,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     }
 
     /*  Override methods  */
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mUserListEventListener != null) {
-            mUserListEventListener.remove();
-        }
-    }
 
     @Override
     public void onClick(View v) {
@@ -165,6 +163,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                         mRequester = task.getResult().toObject(Requester.class);
                         Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
                         ((UserClient) (getApplicationContext())).setRequester(mRequester);
+
                         getLastKnownLocation();
                     }
                 }
@@ -174,11 +173,9 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    // Todo: Remove FusedLocationClient and try out another way of fetching location
     private void getLastKnownLocation() {
         Log.d(TAG, "getLastKnownLocation called.");
-
-
-        /* The get Last Location method may return null if it has not been a long time since the app started. */
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -195,14 +192,16 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                         GeoPoint geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
                         mRequester.setGeoPoint(geoPoint);
 
+                        /* just add the requester to the list. It does not matter what the geopoint is
+                        * since the UserMapActivity is going to fetch the location anyway */
                         mUserList.add(mRequester);
-                        display();
-                        startLocationService();
-
                     } catch (NullPointerException e) {
                         Log.d(TAG, "getLastKnownLocation: mLocation is null.");
+
                     }
 
+                    startLocationService();
+                    display();
                 }
             }
         });
@@ -217,8 +216,80 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         mWelcomeText.setText("Welcome to SmartDispatch " + requester.getEmail().substring(0, requester.getEmail().indexOf("@")));
         mAadharText.setText("Aadhar Number: " + requester.getAadhar_number());
         mPhoneText.setText("Phone Number: " + requester.getPhone_number());
-        mLocationText.setText("Latitude: " + requester.getGeoPoint().getLatitude() + ", Longitude: " + requester.getGeoPoint().getLongitude());
-        set = true;
+
+        final DocumentReference docRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid());
+
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot,
+                                @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "Current data: " + snapshot.getData());
+                    mRequester.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
+
+                    mLocationText.setText("Latitude: " + mRequester.getGeoPoint().getLatitude() + ", Longitude: " + mRequester.getGeoPoint().getLongitude());
+
+                    set = true;
+                } else {
+                    Log.d(TAG, "Current data: null");
+                }
+            }
+        });
+
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(isMapsEnabled()){
+            getUserDetails();
+        }
+    }
+
+    public boolean isMapsEnabled(){
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: called.");
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+
+                getUserDetails();
+            }
+        }
+
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 }
 
