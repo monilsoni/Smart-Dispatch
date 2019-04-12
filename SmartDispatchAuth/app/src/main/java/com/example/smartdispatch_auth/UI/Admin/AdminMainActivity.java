@@ -28,7 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class AdminMainActivity extends AppCompatActivity {
+public class AdminMainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private final static String TAG = "AdminMainActivity";
 
@@ -39,22 +39,35 @@ public class AdminMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_main);
-        Button start_clustering_button = findViewById(R.id.button);
+
+        findViewById(R.id.allocateVehicle).setOnClickListener(this);
+        findViewById(R.id.register_hospital).setOnClickListener(this);
+        findViewById(R.id.register_vehicle).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
         progress.setTitle("Loading");
         progress.setMessage("Preparing the interface");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
-        start_clustering_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.allocateVehicle: {
                 progress.show();
                 new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve");
+            }
+
+            case R.id.register_hospital: {
 
             }
-        });
+
+            case R.id.register_vehicle: {
+
+            }
+        }
+
     }
 
     private static class GetUrlContentTask extends AsyncTask<String, Integer, String> {
