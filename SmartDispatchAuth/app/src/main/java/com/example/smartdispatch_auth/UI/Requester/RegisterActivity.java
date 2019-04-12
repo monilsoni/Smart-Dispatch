@@ -19,6 +19,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import static android.text.TextUtils.isEmpty;
 
@@ -56,7 +57,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
 
-                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getUid(), aadhar_number, phone_number, name, sex, age, null, null);
+                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getUid(), aadhar_number,
+                                    phone_number, name, sex, age,
+                                    new GeoPoint(0, 0), null);
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection(getString(R.string.collection_users))

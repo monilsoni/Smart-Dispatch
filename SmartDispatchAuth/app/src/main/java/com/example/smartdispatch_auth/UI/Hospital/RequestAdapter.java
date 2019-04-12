@@ -25,6 +25,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
+
+import static android.support.constraint.Constraints.TAG;
+
 public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestViewHolder> {
 
     public Context getContext() {
@@ -54,6 +57,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                 Intent intent = new Intent(context, HospitalMapActivity.class);
                 intent.putExtra("request", requests.get(i));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Log.d(TAG, "onClick: " + requests.get(i).toString());
                 context.startActivity(intent);
             }
         });
