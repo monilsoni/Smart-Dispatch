@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -61,7 +62,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private static final String TAG = "UserMainActivity";
 
     // Android widgets
-    private TextView mWelcomeText, mLocationText, mAadharText, mPhoneText;
+    private TextView mWelcomeText, mAadharText, mPhoneText;
 
     // Variables
     private boolean mLocationPermissionGranted = false;
@@ -78,13 +79,13 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_user_main);
 
         mWelcomeText = findViewById(R.id.welcome);
-        mLocationText = findViewById(R.id.location);
         mAadharText = findViewById(R.id.aadhar);
         mPhoneText = findViewById(R.id.phone);
 
         findViewById(R.id.look_at_map).setOnClickListener(this);
         findViewById(R.id.sign_out).setOnClickListener(this);
         findViewById(R.id.submit_request).setOnClickListener(this);
+        findViewById(R.id.driver_phone).setOnClickListener(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -94,6 +95,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             findViewById(R.id.submit_request).setVisibility(View.GONE);
         }else{
             findViewById(R.id.look_at_map).setVisibility(View.GONE);
+            findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
         }
 
         progress = new ProgressDialog(this);
@@ -154,6 +156,11 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 Intent intent = new Intent(UserMainActivity.this, RequestForm.class);
                 startActivity(intent);
                 break;
+            }
+
+            case R.id.driver_phone: {
+                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mRequest.getVehicle().getPhone_number()));
+                startActivity(intent);
             }
         }
     }
@@ -250,7 +257,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 if (snapshot != null && snapshot.exists() && snapshot.getData().get("geoPoint") != null) {
                     Log.d(TAG, "Current data: " + snapshot.getData());
                     mRequester.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
-                    mLocationText.setText("Latitude: " + mRequester.getGeoPoint().getLatitude() + ", Longitude: " + mRequester.getGeoPoint().getLongitude());
                 } else {
                     Log.d(TAG, "Current data: null");
                 }

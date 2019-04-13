@@ -16,6 +16,7 @@ import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UI.Admin.AdminMainActivity;
 import com.example.smartdispatch_auth.UI.LoginActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -62,10 +63,12 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
         Intent intent = getIntent();
         authenticator = intent.getStringExtra("user");
+
         switch (authenticator){
             case "requester":{
                 mLicenseNumber.setVisibility(View.GONE);
                 mVehicleNumber.setVisibility(View.GONE);
+                break;
             }
 
             case "vehicle":{
@@ -73,6 +76,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 ((EditText)findViewById(R.id.input_name)).setHint("Driver Name");
                 ((EditText)findViewById(R.id.input_age)).setHint("Driver Age");
                 ((TextView)findViewById(R.id.input_sex)).setHint("Driver Sex");
+                break;
 
             }
 
@@ -81,11 +85,14 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 ((EditText)findViewById(R.id.input_name)).setHint("Hospital Name");
                 mLicenseNumber.setVisibility(View.GONE);
                 mVehicleNumber.setVisibility(View.GONE);
+                mAadharNumber.setVisibility(View.GONE);
                 mAge.setVisibility(View.GONE);
 
                 findViewById(R.id.input_sex).setVisibility(View.GONE);
                 findViewById(R.id.divider).setVisibility(View.GONE);
                 findViewById(R.id.radioGroup).setVisibility(View.GONE);
+                break;
+
             }
         }
 
@@ -105,13 +112,13 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             Date date = new Date();
                             Timestamp time = new Timestamp(date.getTime());
 
-                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getUid(), aadhar_number,
+                            Requester requester = new Requester(email, FirebaseAuth.getInstance().getCurrentUser().getUid(), aadhar_number,
                                     phone_number, name, sex, age,
-                                    new GeoPoint(0, 0), time, "requester", FirebaseInstanceId.getInstance().getCurrentUser().getToken());
+                                    new GeoPoint(0, 0), time, "requester", FirebaseInstanceId.getInstance().getToken());
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection("Users")
-                                    .document(FirebaseAuth.getInstance().getUid());
+                                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                             newUserRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -156,7 +163,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection("Hospital")
-                                    .document(FirebaseAuth.getInstance().getUid());
+                                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                             newUserRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -195,12 +202,12 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         if (task.isSuccessful()) {
                             Date date = new Date();
                             Timestamp time = new Timestamp(date.getTime());
-                            Vehicle vehicle = new Vehicle(name, age, vehicleno, phone_number, licenseno, aadhar_number, email, FirebaseAuth.getInstance().getUid(),
-                                    new GeoPoint(0, 0), time, "vehicle", FirebaseInstanceId.getInstance().getCurrentUser().getToken(), 0);
+                            Vehicle vehicle = new Vehicle(name, age, vehicleno, phone_number, licenseno, aadhar_number, email, FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                                    new GeoPoint(0, 0), time, "vehicle", FirebaseInstanceId.getInstance().getToken(), 0);
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
                                     .collection("Vehicles")
-                                    .document(FirebaseAuth.getInstance().getUid());
+                                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                             newUserRef.set(vehicle).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override

@@ -1,6 +1,7 @@
 package com.example.smartdispatch_auth.UI.Admin;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,8 @@ import com.example.smartdispatch_auth.Models.Cluster;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.Models.ClusterFetch;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UI.LoginActivity;
+import com.example.smartdispatch_auth.UI.RegisterActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -45,7 +48,6 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         findViewById(R.id.register_vehicle).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
-        progress.setTitle("Loading");
         progress.setMessage("Creating clusters and assigning vehicles...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
@@ -60,11 +62,19 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
             }
 
             case R.id.register_hospital: {
-
+                Intent intent = new Intent(AdminMainActivity.this, RegisterActivity.class);
+                intent.putExtra("user", "hospital");
+                startActivity(intent);
+                finish();
+                break;
             }
 
             case R.id.register_vehicle: {
-
+                Intent intent = new Intent(AdminMainActivity.this, RegisterActivity.class);
+                intent.putExtra("user", "vehicle");
+                startActivity(intent);
+                finish();
+                break;
             }
         }
 
