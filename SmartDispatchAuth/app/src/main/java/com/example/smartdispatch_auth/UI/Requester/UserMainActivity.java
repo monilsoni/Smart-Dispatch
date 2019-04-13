@@ -56,7 +56,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
     // Android widgets
     private TextView mWelcomeText, mLocationText, mAadharText, mPhoneText;
-    private ProgressBar mProgressBar;
 
     // Variables
     private FusedLocationProviderClient mFusedLocationClient;
@@ -75,7 +74,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         mLocationText = findViewById(R.id.location);
         mAadharText = findViewById(R.id.aadhar);
         mPhoneText = findViewById(R.id.phone);
-        mProgressBar = findViewById(R.id.progressBar);
 
         findViewById(R.id.look_at_map).setOnClickListener(this);
         findViewById(R.id.sign_out).setOnClickListener(this);
@@ -138,10 +136,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             }
 
             case R.id.look_at_map: {
-                if (mProgressBar.isShown()) {
-                    Toast.makeText(this, "Please wait for the application to load, thank you!", Toast.LENGTH_SHORT).show();
-                    break;
-                }
 
                 Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
                 intent.putExtra("request", mRequest);
@@ -166,7 +160,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private void getUserDetails() {
 
         if (!set) {
-            Utilities.showDialog(mProgressBar);
             progress.show();
         }
         if (mRequester == null) {
@@ -233,7 +226,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         Requester requester = ((UserClient) getApplicationContext()).getRequester();
 
-        Utilities.hideDialog(mProgressBar);
         mWelcomeText.setText("Welcome to SmartDispatch " + requester.getEmail().substring(0, requester.getEmail().indexOf("@")));
         mAadharText.setText("Aadhar Number: " + requester.getAadhar_number());
         mPhoneText.setText("Phone Number: " + requester.getPhone_number());

@@ -49,7 +49,6 @@ public class RequestNotificationVehicle extends FirebaseMessagingService {
                 .setContentInfo("Info");
 
         notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
-        Log.d("huad", "asd");
         Intent i = new Intent("get");
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
 
@@ -60,7 +59,7 @@ public class RequestNotificationVehicle extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        if(FirebaseAuth.getInstance().getCurrentUser().getUid() != null)
+        if(FirebaseAuth.getInstance().getCurrentUser() != null)
             FirebaseFirestore.getInstance().collection("Vehicles").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
     }
 }

@@ -59,7 +59,7 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        if(FirebaseAuth.getInstance().getCurrentUser().getUid() != null)
+        if(FirebaseAuth.getInstance().getCurrentUser() != null)
             FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
     }
 }
