@@ -304,7 +304,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                         case "vehicle": {
 
-                            Log.d("sex", sex);
                             if (!isEmpty(age)&& !isEmpty(sex) && !isEmpty(aadhar_number) && !isEmpty(vehicleno)) {
 
                                 if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
