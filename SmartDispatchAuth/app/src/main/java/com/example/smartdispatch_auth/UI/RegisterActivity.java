@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -98,6 +99,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
 
         findViewById(R.id.btn_register).setOnClickListener(this);
+        findViewById(R.id.radioGroup).setOnClickListener(this);
 
     }
 
@@ -239,6 +241,28 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     /* Override methods */
 
+    public void onRadioButtonClicked(View view) {
+
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.radio_male:
+                if (checked)
+                    sex = "Male";
+                    break;
+            case R.id.radio_female:
+                if (checked)
+                    sex = "Female";
+                    break;
+            case R.id.radio_other:
+                if (checked)
+                    sex = "Other";
+                break;
+        }
+    }
+
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -257,7 +281,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         && !isEmpty(phone_number)) {
 
                     switch (authenticator) {
-
+                        
                         case "requester": {
 
                             if (!isEmpty(age) && !isEmpty(sex) && !isEmpty(aadhar_number)) {
@@ -319,35 +343,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 break;
 
             }
-
-            case R.id.radioGroup:{
-                boolean checked = ((RadioButton) v).isChecked();
-
-                switch (v.getId()){
-                    case R.id.radio_male:{
-                        if(checked)
-                            sex = "Male";
-                        break;
-
-                    }
-
-                    case R.id.radio_female:{
-                        if(checked)
-                            sex = "Female";
-                        break;
-
-                    }
-
-                    case R.id.radio_other:{
-                        if(checked)
-                            sex = "Other";
-                        break;
-
-                    }
-
-                }
-            }
-
         }
     }
 
