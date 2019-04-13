@@ -46,10 +46,9 @@ import java.util.ArrayList;
 
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
-// todo: agar net chal raha hai to sms button nai
-// todo calllllllll
 // todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
 // todo vehicle detect request object
+// todo when requester has an active request disable request form button and display the active request
 
 public class UserMainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -222,9 +221,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                     mRequester.setGeoPoint(geoPoint);
 
                     progress.dismiss();
-
-                    /* just add the requester to the list. It does not matter what the geopoint is
-                     * since the UserMapActivity is going to fetch the location anyway */
                     startLocationService();
                     display();
                 }
