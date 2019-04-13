@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth.UI.Requester;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +31,8 @@ import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,6 +48,8 @@ import com.google.firebase.firestore.Source;
 
 import java.util.ArrayList;
 
+import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
+import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 // todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
@@ -58,6 +64,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private TextView mWelcomeText, mLocationText, mAadharText, mPhoneText;
 
     // Variables
+    private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
     private Request mRequest;
@@ -139,10 +146,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
                 Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
                 intent.putExtra("request", mRequest);
-                if(mRequest != null)
-                    Log.d(TAG, "onClick: request " + mRequest.toString() );
-                else
-                    Log.d(TAG, "onClick: Request is null");
                 startActivity(intent);
                 break;
             }
@@ -260,35 +263,28 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
-        if(Utilities.checkInternetConnectivity(this) == false){
+        if(!Utilities.checkInternetConnectivity(this)){
             source = Source.CACHE;
         }
 
-        if (isMapsEnabled()) {
-            getUserDetails();
-        }
-    }
-
-    public boolean isMapsEnabled() {
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: called.");
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+        if(checkMapServices()){
+            if(mLocationPermissionGranted){
                 getUserDetails();
             }
+            else{
+                getLocationPermission();
+            }
         }
+    }
 
+
+    private boolean checkMapServices(){
+        if(isServicesOK()){
+            if(isMapsEnabled()){
+                return true;
+            }
+        }
+        return false;
     }
 
     private void buildAlertMessageNoGps() {
@@ -304,5 +300,88 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         final AlertDialog alert = builder.create();
         alert.show();
     }
+
+    public boolean isMapsEnabled(){
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+            return false;
+        }
+        return true;
+    }
+
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+            getUserDetails();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    public boolean isServicesOK(){
+        Log.d(TAG, "isServicesOK: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(UserMainActivity.this);
+
+        if(available == ConnectionResult.SUCCESS){
+            //everything is fine and the user can make map requests
+            Log.d(TAG, "isServicesOK: Google Play Services is working");
+            return true;
+        }
+        else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
+            //an error occured but we can resolve it
+            Log.d(TAG, "isServicesOK: an error occured but we can fix it");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(UserMainActivity.this, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        }else{
+            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
+        }
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: called.");
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+                if(mLocationPermissionGranted){
+                    getUserDetails();
+                }
+                else{
+                    getLocationPermission();
+                }
+            }
+        }
+
+    }
+
 }
 

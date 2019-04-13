@@ -168,6 +168,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
 
+            if(authenticator.equals("admin"))
+                check = true;
+
             if(!check){
                 Toast.makeText(LoginActivity.this, "Invalid Email Address", Toast.LENGTH_SHORT).show();
                 progress.hide();

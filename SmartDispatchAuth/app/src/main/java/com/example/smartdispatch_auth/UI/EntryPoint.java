@@ -35,11 +35,14 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
                    intent.putExtra("authenticator", "vehicle");
                else
                    intent.putExtra("authenticator", "hospital");
+
+                startActivity(intent);
+                finish();
             }else{
-                intent.putExtra("authenticator", "requester");
+                findViewById(R.id.vehicle_login_button).setVisibility(View.GONE);
+                findViewById(R.id.hospital_login_button).setVisibility(View.GONE);
             }
-            startActivity(intent);
-            finish();
+
         }
     }
 
