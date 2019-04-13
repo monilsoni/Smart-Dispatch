@@ -72,7 +72,10 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_form);
-
+      
+        progress = new ProgressDialog(this);
+        progress.setMessage("Sending Request");
+        progress.setCancelable(false);
 
         mChkbox_medical = findViewById(R.id.checkBox_medical);
         mChkbox_fire = findViewById(R.id.checkBox_fire);
@@ -221,12 +224,12 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                     @Override
                                                     public void onSuccess(DocumentReference documentReference) {
-                                                        showToast("Request stored");
+                                                        Log.d(TAG, "onSuccess: Request Stored.");
                                                     }
                                                 }).addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                showToast("Request failed");
+                                                Log.d(TAG, "onFailure: Request failed to store.");
                                             }
                                         });
 
