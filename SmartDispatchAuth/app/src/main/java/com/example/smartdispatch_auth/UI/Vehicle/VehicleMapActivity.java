@@ -1,4 +1,4 @@
-package com.example.smartdispatch_auth.UI.Hospital;
+package com.example.smartdispatch_auth.UI.Vehicle;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -50,12 +50,12 @@ import java.util.List;
 
 import static com.example.smartdispatch_auth.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class HospitalMapActivity extends AppCompatActivity implements
+public class VehicleMapActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         View.OnClickListener,
         GoogleMap.OnPolylineClickListener {
 
-    private static final String TAG = "HospitalMapActivity";
+    private static final String TAG = "VehicleMapActivity";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     // widgets
@@ -79,7 +79,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
 
     private Request mRequest;
-    private Hospital mHospital;
+    private Vehicle mVehicle;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,11 +93,11 @@ public class HospitalMapActivity extends AppCompatActivity implements
         if (intent != null) {
             mRequest = intent.getParcelableExtra("request");
 
-            mHospital = mRequest.getHospital();
+            mVehicle = mRequest.getVehicle();
 
-            mUserLocations.add(mRequest.getVehicle());
             mUserLocations.add(mRequest.getRequester());
-            mUserLocations.add(mHospital);
+            mUserLocations.add(mRequest.getHospital());
+            mUserLocations.add(mVehicle);
 
             Log.d(TAG, "Request: " + mRequest.toString());
 
@@ -247,7 +247,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
         try {
             for (final RequestClusterMarker clusterMarker : mClusterMarkers) {
 
-                switch (clusterMarker.getUser().getType()) {
+                switch (clusterMarker.getUser().getType()){
                     case "requester": {
                         DocumentReference userLocationRef = FirebaseFirestore.getInstance()
                                 .collection(getString(R.string.collection_users))
@@ -257,13 +257,13 @@ public class HospitalMapActivity extends AppCompatActivity implements
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                 if (task.isSuccessful()) {
                                     DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
+                                    if(document.exists()){
                                         Requester updatedUserLocation = task.getResult().toObject(Requester.class);
                                         clusterMarker.setPosition(new LatLng(
                                                 updatedUserLocation.getGeoPoint().getLatitude(),
                                                 updatedUserLocation.getGeoPoint().getLongitude()
                                         ));
-                                    } else {
+                                    }else{
                                         Log.d(TAG, "onComplete: Did not find any documents like this");
                                     }
                                 }
@@ -281,13 +281,13 @@ public class HospitalMapActivity extends AppCompatActivity implements
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                 if (task.isSuccessful()) {
                                     DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
+                                    if(document.exists()){
                                         Vehicle updatedUserLocation = task.getResult().toObject(Vehicle.class);
                                         clusterMarker.setPosition(new LatLng(
                                                 updatedUserLocation.getGeoPoint().getLatitude(),
                                                 updatedUserLocation.getGeoPoint().getLongitude()
                                         ));
-                                    } else {
+                                    }else{
                                         Log.d(TAG, "onComplete: Did not find any documents like this");
                                     }
 
@@ -307,13 +307,13 @@ public class HospitalMapActivity extends AppCompatActivity implements
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                 if (task.isSuccessful()) {
                                     DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
+                                    if(document.exists()){
                                         Hospital updatedUserLocation = task.getResult().toObject(Hospital.class);
                                         clusterMarker.setPosition(new LatLng(
                                                 updatedUserLocation.getGeoPoint().getLatitude(),
                                                 updatedUserLocation.getGeoPoint().getLongitude()
                                         ));
-                                    } else {
+                                    }else{
                                         Log.d(TAG, "onComplete: Did not find any documents like this");
                                     }
                                 }
@@ -408,10 +408,10 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
 
         // Set a boundary to start
-        double bottomBoundary = mHospital.getGeoPoint().getLatitude() - .1;
-        double leftBoundary = mHospital.getGeoPoint().getLongitude() - .1;
-        double topBoundary = mHospital.getGeoPoint().getLatitude() + .1;
-        double rightBoundary = mHospital.getGeoPoint().getLongitude() + .1;
+        double bottomBoundary = mVehicle.getGeoPoint().getLatitude() - .1;
+        double leftBoundary = mVehicle.getGeoPoint().getLongitude() - .1;
+        double topBoundary = mVehicle.getGeoPoint().getLatitude() + .1;
+        double rightBoundary = mVehicle.getGeoPoint().getLongitude() + .1;
 
         LatLngBounds mMapBoundary = new LatLngBounds(
                 new LatLng(bottomBoundary, leftBoundary),
@@ -492,12 +492,12 @@ public class HospitalMapActivity extends AppCompatActivity implements
                 break;
             }
 
-            case R.id.btn_go: {
-                if (toggle) {
+            case R.id.btn_go:{
+                if(toggle){
                     calculateDirections(mRequest.getVehicle().getGeoPoint(),
                             mRequest.getRequester().getGeoPoint());
                     toggle = false;
-                } else {
+                }else{
                     calculateDirections(mRequest.getRequester().getGeoPoint(),
                             mRequest.getHospital().getGeoPoint());
                     toggle = true;
@@ -516,7 +516,8 @@ public class HospitalMapActivity extends AppCompatActivity implements
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
 
-                Toast.makeText(HospitalMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
+                Toast.makeText(VehicleMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
+
             } else {
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);

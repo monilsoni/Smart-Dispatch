@@ -32,18 +32,20 @@ public class Hospital extends User implements Parcelable {
         type = in.readString();
         email = in.readString();
         user_id = in.readString();
+        token = in.readString();
     }
 
     public Hospital() {
     }
 
-    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id, String type) {
+    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id, String token, String type) {
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
         this.hospital_name = hospital_name;
         this.type = "hospital";
         this.email = email;
         this.user_id = user_id;
+        this.token = token;
     }
 
     @Override
@@ -55,6 +57,7 @@ public class Hospital extends User implements Parcelable {
                 ", type='" + type + '\'' +
                 ", geoPoint=" + geoPoint +
                 ", timeStamp=" + timeStamp +
+                ", token=" + token +
                 '}';
     }
 
@@ -96,5 +99,6 @@ public class Hospital extends User implements Parcelable {
         dest.writeString(type);
         dest.writeString(email);
         dest.writeString(user_id);
+        dest.writeString(token);
     }
 }

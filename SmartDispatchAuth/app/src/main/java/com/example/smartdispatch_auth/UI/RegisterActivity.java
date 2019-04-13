@@ -281,7 +281,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         && !isEmpty(phone_number)) {
 
                     switch (authenticator) {
-
+                        
                         case "requester": {
 
                             if (!isEmpty(age) && !isEmpty(sex) && !isEmpty(aadhar_number)) {

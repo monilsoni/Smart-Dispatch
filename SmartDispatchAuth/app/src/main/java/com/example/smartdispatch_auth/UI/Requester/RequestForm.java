@@ -64,7 +64,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         setContentView(R.layout.activity_request_form);
 
         progress = new ProgressDialog(this);
-        progress.setTitle("Loading");
         progress.setMessage("Sending Request");
         progress.setCancelable(false);
 
@@ -182,12 +181,12 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                     @Override
                                                     public void onSuccess(DocumentReference documentReference) {
-                                                        showToast("Request stored");
+                                                        Log.d(TAG, "onSuccess: Request Stored.");
                                                     }
                                                 }).addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                showToast("Request failed");
+                                                Log.d(TAG, "onFailure: Request failed to store.");
                                             }
                                         });
                                         progress.dismiss();

@@ -28,7 +28,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -65,7 +64,6 @@ public class UserMapActivity extends AppCompatActivity implements
     // vars
     private ArrayList<User> mUserLocations = new ArrayList<>();
     private GoogleMap mGoogleMap;
-    private LatLngBounds mMapBoundary;
 
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
@@ -86,7 +84,7 @@ public class UserMapActivity extends AppCompatActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_map);
+        setContentView(R.layout.activity_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
         findViewById(R.id.btn_go).setOnClickListener(this);
 
@@ -146,12 +144,6 @@ public class UserMapActivity extends AppCompatActivity implements
                 600,
                 null
         );
-    }
-
-    private void removeTripMarkers() {
-        for (Marker marker : mTripMarkers) {
-            marker.remove();
-        }
     }
 
     private void addPolylinesToMap(final DirectionsResult result) {
@@ -421,7 +413,7 @@ public class UserMapActivity extends AppCompatActivity implements
         double topBoundary = mRequester.getGeoPoint().getLatitude() + .1;
         double rightBoundary = mRequester.getGeoPoint().getLongitude() + .1;
 
-        mMapBoundary = new LatLngBounds(
+        LatLngBounds mMapBoundary = new LatLngBounds(
                 new LatLng(bottomBoundary, leftBoundary),
                 new LatLng(topBoundary, rightBoundary)
         );
@@ -518,29 +510,13 @@ public class UserMapActivity extends AppCompatActivity implements
     @Override
     public void onPolylineClick(Polyline polyline) {
 
-        int index = 0;
         for (PolylineData polylineData : mPolylinesData) {
-            index++;
             Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
             if (polyline.getId().equals(polylineData.getPolyline().getId())) {
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
 
                 Toast.makeText(UserMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
-                /*
-                LatLng endLocation = new LatLng(
-                        polylineData.getLeg().endLocation.lat,
-                        polylineData.getLeg().endLocation.lng
-                );
-
-                Marker marker = mGoogleMap.addMarker(new MarkerOptions()
-                        .position(endLocation)
-                        .title("Trip #" + index)
-                        .snippet("Duration: " + polylineData.getLeg().duration
-                        ));
-
-                mTripMarkers.add(marker);
-                marker.showInfoWindow();*/
             } else {
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);

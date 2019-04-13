@@ -87,7 +87,7 @@
                 android:layout_marginTop="25dp"
                 android:background="@drawable/textviewborder"
                 android:padding="10dp"
-                android:text="Login as a admin"
+                android:text="Login as an admin"
                 android:textColor="@color/colorPrimaryDark"
                 android:layout_below="@id/hospital_login_button"
                 android:layout_alignParentRight="true"
