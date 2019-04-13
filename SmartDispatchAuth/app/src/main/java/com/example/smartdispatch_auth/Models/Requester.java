@@ -9,24 +9,13 @@ import java.util.Date;
 
 public class Requester extends User implements Parcelable {
 
-    public static final Creator<Requester> CREATOR = new Creator<Requester>() {
-        @Override
-        public Requester createFromParcel(Parcel in) {
-            return new Requester(in);
-        }
-
-        @Override
-        public Requester[] newArray(int size) {
-            return new Requester[size];
-        }
-    };
     String aadhar_number, phone_number, name, sex, age;
 
     public Requester() {
 
     }
 
-    public Requester(String email, String user_id, String aadhar_number, String phone_number, String name, String sex, String age, GeoPoint geoPoint, Date timeStamp, String type) {
+    public Requester(String email, String user_id, String aadhar_number, String phone_number, String name, String sex, String age, GeoPoint geoPoint, Date timeStamp, String type, String token) {
         this.email = email;
         this.user_id = user_id;
         this.aadhar_number = aadhar_number;
@@ -36,7 +25,8 @@ public class Requester extends User implements Parcelable {
         this.age = age;
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
-        this.type = "requester";
+        this.type = type;
+        this.token = token;
     }
 
     protected Requester(Parcel in) {
@@ -52,7 +42,20 @@ public class Requester extends User implements Parcelable {
         double longitude = in.readDouble();
         geoPoint = new GeoPoint(latitude, longitude);
         type = in.readString();
+        token = in.readString();
     }
+
+    public static final Creator<Requester> CREATOR = new Creator<Requester>() {
+        @Override
+        public Requester createFromParcel(Parcel in) {
+            return new Requester(in);
+        }
+
+        @Override
+        public Requester[] newArray(int size) {
+            return new Requester[size];
+        }
+    };
 
     @Override
     public String toString() {
@@ -67,6 +70,7 @@ public class Requester extends User implements Parcelable {
                 ", email='" + email + '\'' +
                 ", user_id='" + user_id + '\'' +
                 ", type='" + type + '\'' +
+                ", token='" + token +'\'' +
                 '}';
     }
 
@@ -144,5 +148,6 @@ public class Requester extends User implements Parcelable {
         dest.writeDouble(geoPoint.getLongitude());
 
         dest.writeString(type);
+        dest.writeString(token);
     }
 }
