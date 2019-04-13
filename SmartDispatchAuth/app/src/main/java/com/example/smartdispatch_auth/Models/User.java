@@ -7,10 +7,29 @@ import java.util.Date;
 
 public class User {
 
-    protected String email, user_id, type; // So that the child functions can access these variables
+    protected String email, user_id, type, token; // So that the child functions can access these variables
     protected GeoPoint geoPoint;
-    protected  @ServerTimestamp
+    protected @ServerTimestamp
     Date timeStamp;
+
+    public User() {
+    }
+
+    public User(String email, String user_id, String type, GeoPoint geoPoint, Date timeStamp) {
+        this.email = email;
+        this.user_id = user_id;
+        this.type = type;
+        this.geoPoint = geoPoint;
+        this.timeStamp = timeStamp;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public String getEmail() {
         return email;
@@ -49,17 +68,6 @@ public class User {
     }
 
     public void setTimeStamp(Date timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
-    public User() {
-    }
-
-    public User(String email, String user_id, String type, GeoPoint geoPoint, Date timeStamp) {
-        this.email = email;
-        this.user_id = user_id;
-        this.type = type;
-        this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
     }
 }

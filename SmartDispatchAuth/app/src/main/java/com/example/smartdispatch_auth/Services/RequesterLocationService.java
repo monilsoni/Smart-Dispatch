@@ -1,5 +1,7 @@
 package com.example.smartdispatch_auth.Services;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 
 import android.Manifest;
@@ -14,6 +16,7 @@ import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -35,13 +38,12 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
-public class LocationService extends Service {
+public class RequesterLocationService extends Service {
 
-    private static final String TAG = "LocationService";
-
-    private FusedLocationProviderClient mFusedLocationClient;
+    private static final String TAG = "ReqLocationService";
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
     private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Nullable
     @Override
@@ -75,7 +77,21 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand: called.");
         getLocation();
-        return START_NOT_STICKY;
+        return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceTask = new Intent(getApplicationContext(),this.getClass());
+        restartServiceTask.setPackage(getPackageName());
+        PendingIntent restartPendingIntent = PendingIntent.getService(getApplicationContext(), 1,restartServiceTask, PendingIntent.FLAG_ONE_SHOT);
+        AlarmManager myAlarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        myAlarmService.set(
+                AlarmManager.ELAPSED_REALTIME,
+                SystemClock.elapsedRealtime() + 1000,
+                restartPendingIntent);
+
+        super.onTaskRemoved(rootIntent);
     }
 
     private void getLocation() {
@@ -107,8 +123,10 @@ public class LocationService extends Service {
                         if (location != null) {
                             Requester requester = ((UserClient)(getApplicationContext())).getRequester();
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            requester.setGeoPoint(geoPoint);
-                            saveUserLocation(requester);
+                            if(requester != null){
+                                requester.setGeoPoint(geoPoint);
+                                saveUserLocation(requester);
+                            }
                         }
                     }
                 },
@@ -120,7 +138,7 @@ public class LocationService extends Service {
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
+                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
             locationRef.set(requester).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override

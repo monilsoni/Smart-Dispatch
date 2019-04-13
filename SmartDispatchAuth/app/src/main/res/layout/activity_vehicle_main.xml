@@ -173,7 +173,7 @@ tools:context=".UI.Vehicle.VehicleMainActivity">
             android:layout_below="@id/vehicleNoLayout">
 
             <TextView
-                android:id="@+id/licenceNo"
+                android:id="@+id/licenseNo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Licence Number : "
@@ -186,7 +186,7 @@ tools:context=".UI.Vehicle.VehicleMainActivity">
                 android:paddingHorizontal="10dp"
                 android:text="123456"
                 android:textSize="15dp"
-                android:layout_toRightOf="@id/licenceNo"
+                android:layout_toRightOf="@id/licenseNo"
                 android:textColor="@color/ColorSecondary"/>
         </RelativeLayout>
 

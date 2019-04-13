@@ -9,13 +9,24 @@ import java.util.Date;
 
 public class Requester extends User implements Parcelable {
 
+    public static final Creator<Requester> CREATOR = new Creator<Requester>() {
+        @Override
+        public Requester createFromParcel(Parcel in) {
+            return new Requester(in);
+        }
+
+        @Override
+        public Requester[] newArray(int size) {
+            return new Requester[size];
+        }
+    };
     String aadhar_number, phone_number, name, sex, age;
 
     public Requester() {
 
     }
 
-    public Requester(String email, String user_id, String aadhar_number, String phone_number, String name, String sex, String age, GeoPoint geoPoint, Date timeStamp) {
+    public Requester(String email, String user_id, String aadhar_number, String phone_number, String name, String sex, String age, GeoPoint geoPoint, Date timeStamp, String type) {
         this.email = email;
         this.user_id = user_id;
         this.aadhar_number = aadhar_number;
@@ -42,18 +53,6 @@ public class Requester extends User implements Parcelable {
         geoPoint = new GeoPoint(latitude, longitude);
         type = in.readString();
     }
-
-    public static final Creator<Requester> CREATOR = new Creator<Requester>() {
-        @Override
-        public Requester createFromParcel(Parcel in) {
-            return new Requester(in);
-        }
-
-        @Override
-        public Requester[] newArray(int size) {
-            return new Requester[size];
-        }
-    };
 
     @Override
     public String toString() {

@@ -37,6 +37,7 @@ public class SetUpActivity extends AppCompatActivity {
 
     private static final String TAG = "SetUpActivity";
 
+    // Todo remove this activity altogether
     // widgets
     private TextView internetCheck, gpsCheck;
     IntentFilter filter;
@@ -50,6 +51,7 @@ public class SetUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_up);
+
 
         internetCheck = findViewById(R.id.internet_check);
         gpsCheck = findViewById(R.id.gps_check);
