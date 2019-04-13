@@ -88,7 +88,7 @@
                         android:translationZ="10dp">
 
                         <Button
-                            android:id="@+id/cr_textView"
+                            android:id="@+id/current_request"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_gravity="start"
@@ -102,10 +102,10 @@
                             android:textColor="@color/ColorSecondary" />
 
                         <Button
-                            android:id="@+id/rh_textView"
+                            android:id="@+id/request_history"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/cr_textView"
+                            android:layout_below="@id/current_request"
                             android:layout_gravity="end"
                             android:layout_marginBottom="10dp"
                             android:background="@drawable/border_button"
@@ -119,9 +119,9 @@
                             android:id="@+id/sosButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_below="@+id/rh_textView"
+                            android:layout_below="@+id/request_history"
                             android:layout_gravity="end"
-                            android:background="@color/ColorSecondary"
+                            android:background="@drawable/light_button_background"
                             android:fontFamily="sans-serif"
                             android:padding="10dp"
                             android:text="Offline Request"
@@ -223,7 +223,7 @@
                 android:layout_below="@+id/registerCard"
                 android:layout_marginHorizontal="30dp"
                 android:layout_marginVertical="25dp"
-                android:background="@color/colorPrimaryDark"
+                android:background="@drawable/button_background"
                 android:fontFamily="sans-serif"
                 android:padding="10dp"
                 android:text="Allocate Vehicle"
