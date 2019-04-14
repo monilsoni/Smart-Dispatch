@@ -22,6 +22,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import static android.text.TextUtils.isEmpty;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "LoginActivity";
@@ -148,7 +150,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String email = mEmail.getText().toString();
         final String password = mPassword.getText().toString();
 
-        if (email != null && password != null) {
+        if (!isEmpty(email) && !isEmpty(password)) {
 
             progress.show();
 
