@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/admin_reqcard"
+    android:orientation="vertical"
+    android:background="#EEE">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="7dp"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/colorPrimaryDark">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Hospital Details"
+                    android:textAlignment="center"
+                    android:padding="10dp"
+                    android:textSize="14dp"
+                    android:textColor="#FFF"
+                    android:background="@color/colorPrimaryDark"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingBottom="5dp">
+
+                    <TextView
+                        android:id="@+id/hospitalnameTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Hospital Name : "
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/hospitalname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/colorPrimaryLight"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingVertical="5dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/addrTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Address : "
+                        android:textColor="#EEE"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/hospitaladdr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/colorPrimaryLight"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/textviewborder">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Vehicle Details"
+                    android:textAlignment="center"
+                    android:padding="10dp"
+                    android:textSize="14dp"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:translationZ="5dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingBottom="5dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/drivernameTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Driver Name : "
+                        android:textColor="@color/ColorSecondary"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/drivername"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/colorPrimaryLight"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp">
+
+                    <TextView
+                        android:id="@+id/contactnoTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Contact No. : "
+                        android:textColor="@color/ColorSecondary"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/contactno"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/colorPrimaryLight"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:textAlignment="center"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingHorizontal="10dp">
+
+                    <TextView
+                        android:id="@+id/vehiclenoTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="Vehicle No. : "
+                        android:textColor="@color/ColorSecondary"
+                        android:textSize="12dp"/>
+
+                    <TextView
+                        android:id="@+id/vehicleno"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/colorPrimaryLight"
+                        android:textSize="12dp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+</RelativeLayout>
