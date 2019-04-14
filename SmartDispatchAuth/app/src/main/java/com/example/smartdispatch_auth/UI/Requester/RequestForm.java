@@ -92,8 +92,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
             }
 
         }
-
-
     }
 
     public void onclickSend() {
@@ -177,11 +175,19 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                         );
 
 
+                                        Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
                                         FirebaseFirestore.getInstance().collection("Requests").add(request)
                                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                     @Override
                                                     public void onSuccess(DocumentReference documentReference) {
                                                         Log.d(TAG, "onSuccess: Request Stored.");
+                                                        intent.putExtra("request", request);
+                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifVehicle?id="+
+                                                                request.getVehicle().getUser_id()+
+                                                                "&name="+request.getRequester().getName());
+
                                                     }
                                                 }).addOnFailureListener(new OnFailureListener() {
                                             @Override
@@ -191,8 +197,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                         });
                                         progress.dismiss();
 
-                                        Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
-                                        intent.putExtra("request", request);
                                         startActivity(intent);
                                         finish();
                                     }
@@ -275,11 +279,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
             typeofemergency += "Fire ";
         if (mChkbox_other.isChecked())
             typeofemergency += "Other";
-
-        int scaleofemergency = mSeek_severity.getProgress();
-
-        GeoPoint location1 = new GeoPoint(23.1116, 72.5728);
-        GeoPoint location2 = new GeoPoint(23.1859, 72.6213);
 
     }
 

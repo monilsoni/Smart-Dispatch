@@ -5,9 +5,11 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -17,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +33,8 @@ import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.RequesterLocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMapActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -45,6 +50,8 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Source;
 
 import java.util.ArrayList;
@@ -68,7 +75,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
-    private Request mRequest;
+    private Request mRequest = null;
     private boolean set = false;
     Source source = Source.DEFAULT;
     ProgressDialog progress;
@@ -91,6 +98,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         Intent intent = getIntent();
         if(intent.getParcelableExtra("request") != null){
+            // todo: Fill in the vehicle layout
             mRequest = intent.getParcelableExtra("request");
             findViewById(R.id.submit_request).setVisibility(View.GONE);
         }else{
@@ -102,6 +110,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         progress.setMessage("Loading your data");
         progress.setCancelable(false);
     }
+
 
     /*  GPS Service  */
 
@@ -281,6 +290,35 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 getLocationPermission();
             }
         }
+
+        if(checkForRequests())
+            findViewById(R.id.submit_request).setVisibility(View.GONE);
+
+    }
+
+    private boolean checkForRequests() {
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Request request = document.toObject(Request.class);
+                                if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
+                                    mRequest = request;
+                                }
+
+                            }
+                        }
+
+                    }
+
+                });
+
+        if(mRequest != null)
+            return true;
+
+        return false;
     }
 
 

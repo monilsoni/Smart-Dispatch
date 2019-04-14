@@ -20,9 +20,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Request;
@@ -203,7 +201,7 @@ public class HospitalMainActivity extends AppCompatActivity {
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("ccom.example.smartdispatch_auth.Services.HospitalLocationService".equals(service.service.getClassName())) {
+            if ("com.example.smartdispatch_auth.Services.HospitalLocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }

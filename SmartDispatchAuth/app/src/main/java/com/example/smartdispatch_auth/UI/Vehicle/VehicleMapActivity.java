@@ -1,10 +1,13 @@
 package com.example.smartdispatch_auth.UI.Vehicle;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +24,7 @@ import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Utils.RequestClusterManagerRenderer;
+import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -45,6 +49,11 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +77,7 @@ public class VehicleMapActivity extends AppCompatActivity implements
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private boolean toggle = true;
+    private boolean vehicle_alloted = true;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -103,7 +112,6 @@ public class VehicleMapActivity extends AppCompatActivity implements
 
         }
 
-        initGoogleMap(savedInstanceState);
     }
 
     /* Helper methods */
@@ -420,6 +428,13 @@ public class VehicleMapActivity extends AppCompatActivity implements
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
+        if(vehicle_alloted)
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                mRequest.getRequester().getGeoPoint());
+        else
+            calculateDirections(mRequest.getRequester().getGeoPoint(),
+                    mRequest.getHospital().getGeoPoint());
+
     }
 
     /* Override methods */
@@ -493,19 +508,23 @@ public class VehicleMapActivity extends AppCompatActivity implements
             }
 
             case R.id.btn_go:{
-                if(toggle){
-                    calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                            mRequest.getRequester().getGeoPoint());
-                    toggle = false;
-                }else{
-                    calculateDirections(mRequest.getRequester().getGeoPoint(),
+                calculateDirections(mRequest.getRequester().getGeoPoint(),
                             mRequest.getHospital().getGeoPoint());
-                    toggle = true;
-                }
+
+                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifRequesterReached?id="+
+                        mRequest.getRequester().getUser_id()+
+                        "&name="+mRequest.getVehicle().getDriver_name()+
+                        "&no="+mRequest.getVehicle().getVehicle_number());
+
+                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifHospitalReached?id="+
+                        mRequest.getHospital().getUser_id()+
+                        "&name="+mRequest.getVehicle().getDriver_name()+
+                        "&no="+mRequest.getVehicle().getVehicle_number());
+
+                vehicle_alloted = false;
             }
         }
     }
-
 
     @Override
     public void onPolylineClick(Polyline polyline) {

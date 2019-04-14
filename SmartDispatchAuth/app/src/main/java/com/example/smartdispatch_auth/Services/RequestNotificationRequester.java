@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class RequestNotificationHospital extends FirebaseMessagingService {
+public class RequestNotificationRequester extends FirebaseMessagingService {
 
     Map<String, String> hashMap = new HashMap<>();
 
@@ -29,15 +29,15 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         hashMap = remoteMessage.getData();
-        if(hashMap.get("user").equals("hospital"))
+        if (hashMap.get("user").equals("requester"))
             showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), hashMap.get("type"));
     }
 
     private void showNotification(String title, String body, String type) {
-        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String NOTIFICATION_CHANNEL_ID = "my_channel_02";
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Notification",
                     NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.setDescription("TEST");
@@ -55,11 +55,10 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
 
         notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
         if (type.equals("connected")) {
-            Intent i = new Intent("send");
+            Intent i = new Intent("vehicle_alloted");
             LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-        }
-        else{
-            Intent i = new Intent("vReach");
+        } else {
+            Intent i = new Intent("vehicle_reached");
             LocalBroadcastManager.getInstance(this).sendBroadcast(i);
         }
 
@@ -70,7 +69,7 @@ public class RequestNotificationHospital extends FirebaseMessagingService {
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        if(FirebaseAuth.getInstance().getCurrentUser() != null)
-            FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+            FirebaseFirestore.getInstance().collection("Vehicles").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
     }
 }

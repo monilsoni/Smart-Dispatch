@@ -3,8 +3,15 @@ package com.example.smartdispatch_auth.Utils;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class Utilities {
 
@@ -25,6 +32,34 @@ public class Utilities {
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
         return (activeNetwork != null && activeNetwork.isConnectedOrConnecting());
+
+    }
+
+    public static class GetUrlContentTask extends AsyncTask<String, Integer, String> {
+        protected String doInBackground(String... url2) {
+            try {
+                URL url = new URL(url2[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setDoOutput(true);
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.connect();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String content = "", line;
+                while ((line = rd.readLine()) != null) {
+                    content += line + "\n";
+                }
+
+
+                return content;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+        }
 
     }
 }

@@ -30,6 +30,7 @@ import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.RequesterLocationService;
 import com.example.smartdispatch_auth.UserClient;
+import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -104,6 +105,17 @@ public class VehicleMainActivity extends AppCompatActivity {
                                     if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
                                         mRequest = request;
                                         Toast.makeText(VehicleMainActivity.this, "Got the request!", Toast.LENGTH_SHORT).show();
+
+                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifRequester?id="+
+                                                mRequest.getRequester().getUser_id()+
+                                                "&name="+mRequest.getVehicle().getDriver_name()+
+                                                "&no="+mRequest.getVehicle().getVehicle_number());
+
+                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifHospital?id="+
+                                                mRequest.getHospital().getUser_id()+
+                                                "&name="+mRequest.getVehicle().getDriver_name()+
+                                                "&no="+mRequest.getVehicle().getVehicle_number());
+
 
                                         Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
                                         mapIntent.putExtra("request", mRequest);

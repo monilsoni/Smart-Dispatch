@@ -58,7 +58,8 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         switch (v.getId()){
             case R.id.allocateVehicle: {
                 progress.show();
-                new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve");
+                // todo : change the number of vehicles here
+                new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve?vehicles=1");
             }
 
             case R.id.register_hospital: {

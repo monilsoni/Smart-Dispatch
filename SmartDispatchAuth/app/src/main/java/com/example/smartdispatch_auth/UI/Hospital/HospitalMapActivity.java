@@ -1,10 +1,14 @@
 package com.example.smartdispatch_auth.UI.Hospital;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,6 +64,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
     // widgets
     private MapView mMapView;
+    private boolean vehicle_alloted = true, vehicle_reached = false;
 
     // vars
     private ArrayList<User> mUserLocations = new ArrayList<>();
@@ -104,7 +109,22 @@ public class HospitalMapActivity extends AppCompatActivity implements
         }
 
         initGoogleMap(savedInstanceState);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vReach"));
     }
+
+    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            vehicle_reached = true;
+            vehicle_alloted = false;
+            calculateDirections(mRequest.getRequester().getGeoPoint(),
+                    mRequest.getHospital().getGeoPoint());
+        }
+
+    };
+
 
     /* Helper methods */
 
@@ -419,6 +439,12 @@ public class HospitalMapActivity extends AppCompatActivity implements
         );
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
+        if(vehicle_alloted)
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
+        else if(vehicle_reached)
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
 
     }
 

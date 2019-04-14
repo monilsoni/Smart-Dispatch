@@ -1,10 +1,14 @@
 package com.example.smartdispatch_auth.UI.Requester;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -68,7 +72,7 @@ public class UserMapActivity extends AppCompatActivity implements
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private boolean toggle = true;
+    private boolean vehicle_alloted = false, vehicle_reached = false;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -104,7 +108,34 @@ public class UserMapActivity extends AppCompatActivity implements
         }
 
         initGoogleMap(savedInstanceState);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleAlloted, new IntentFilter("vehicle_alloted"));
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vehicle_reached"));
     }
+
+    private BroadcastReceiver vehicleAlloted = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            vehicle_alloted = true;
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
+
+        }
+    };
+
+    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            vehicle_reached = true;
+            vehicle_alloted = false;
+            calculateDirections(mRequest.getRequester().getGeoPoint(),
+                    mRequest.getHospital().getGeoPoint());
+        }
+
+    };
 
     /* Helper methods */
 
@@ -419,6 +450,12 @@ public class UserMapActivity extends AppCompatActivity implements
         );
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
+        if(vehicle_alloted)
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
+        else if(vehicle_reached)
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
 
     }
 
@@ -442,6 +479,7 @@ public class UserMapActivity extends AppCompatActivity implements
         super.onResume();
         mMapView.onResume();
         startUserLocationsRunnable();
+
     }
 
     @Override
@@ -490,18 +528,6 @@ public class UserMapActivity extends AppCompatActivity implements
             case R.id.btn_reset_map: {
                 addMapMarkers();
                 break;
-            }
-
-            case R.id.btn_go:{
-                if(toggle){
-                    calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                            mRequest.getRequester().getGeoPoint());
-                    toggle = false;
-                }else{
-                    calculateDirections(mRequest.getRequester().getGeoPoint(),
-                            mRequest.getHospital().getGeoPoint());
-                    toggle = true;
-                }
             }
         }
     }

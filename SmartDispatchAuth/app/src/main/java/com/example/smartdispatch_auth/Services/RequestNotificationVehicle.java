@@ -22,10 +22,15 @@ import java.util.Map;
 import java.util.Random;
 
 public class RequestNotificationVehicle extends FirebaseMessagingService {
+
+    Map<String, String> hashMap = new HashMap<>();
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
+        hashMap = remoteMessage.getData();
+        if(hashMap.get("user").equals("vehicle"))
+            showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
     }
 
     private void showNotification(String title, String body) {
