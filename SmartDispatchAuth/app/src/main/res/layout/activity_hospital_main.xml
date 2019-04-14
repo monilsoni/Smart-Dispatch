@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEE">
+    android:background="#EEE"
+    android:id="@+id/drawer">
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
+
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="#FFF"
@@ -13,42 +17,184 @@
         android:translationZ="10dp">
 
         <TextView
-            android:id="@+id/smartDispatch"
-            android:layout_width="wrap_content"
+            android:id="@+id/smartDispatchText"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:fontFamily="sans-serif"
+            android:paddingTop="13dp"
             android:text="Smart Dispatch"
-            android:gravity="center"
             android:textColor="@color/colorPrimaryDark"
-            android:textSize="17dp"/>
+            android:textSize="17dp"
+            android:textAlignment="center"/>
+    </RelativeLayout>
 
-    </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        android:layout_marginTop="50dp"/>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:visibility="invisible" />
+        android:layout_below="@id/relativeLayout">
 
-    <TextView
-        android:id="@+id/empty_list_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Everyone's healthy, hope you are too"
-        android:gravity="center_horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:textSize="24sp"/>
+        <RelativeLayout
+            android:id="@+id/hospitalLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp">
 
+            <RelativeLayout
+                android:id="@+id/hospitalHeading"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@color/colorPrimaryDark"
+                android:translationZ="2dp">
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="20dp"
+                    android:background="#FFF" />
+
+                <TextView
+                    android:id="@+id/textHospital"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginTop="13dp"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:text="Hospital Details"
+                    android:textColor="#FFF"
+                    android:textSize="14dp"
+                    android:layout_toRightOf="@id/divider"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/detailsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#FEFEFE"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:translationZ="2dp"
+                android:layout_below="@id/hospitalHeading">
+
+                <RelativeLayout
+                    android:id="@+id/nameLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:orientation="horizontal"
+                    android:padding="15dp">
+
+                    <TextView
+                        android:id="@+id/hospitalName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hospital Name : "
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:text="Ashka Hospital"
+                        android:textSize="15dp"
+                        android:layout_toRightOf="@id/hospitalName"
+                        android:textColor="@color/ColorSecondary"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/contactLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:orientation="horizontal"
+                    android:padding="15dp"
+                    android:layout_below="@id/nameLayout">
+
+                    <TextView
+                        android:id="@+id/contactNo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Contact No. : "
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:text="5863523652"
+                        android:textSize="15dp"
+                        android:layout_toRightOf="@id/contactNo"
+                        android:textColor="@color/ColorSecondary"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/vehicleNoLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:orientation="horizontal"
+                    android:padding="15dp"
+                    android:layout_below="@id/contactLayout">
+
+                    <TextView
+                        android:id="@+id/hospitalAddress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hospital Address : "
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:text="Ahmedabad"
+                        android:textSize="15dp"
+                        android:layout_toRightOf="@id/hospitalAddress"
+                        android:textColor="@color/ColorSecondary"/>
+                </RelativeLayout>
+
+            </RelativeLayout>
+
+            <Button
+                android:id="@+id/current_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="20dp"
+                android:textAlignment="center"
+                android:text="Current Request"
+                android:layout_below="@id/detailsLayout"
+                android:background="@drawable/button_background"
+                android:textColor="#FFF"
+                android:fontFamily="sans-serif" />
+
+            <Button
+                android:id="@+id/sign_out"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="Sign Out"
+                android:layout_below="@id/current_request"
+                android:background="@drawable/textviewborder"
+                android:textColor="@color/colorPrimaryDark"
+                android:fontFamily="sans-serif"
+                android:layout_marginVertical="20dp" />
+
+        </RelativeLayout>
+
+
+    </ScrollView>
 
 
 </RelativeLayout>
