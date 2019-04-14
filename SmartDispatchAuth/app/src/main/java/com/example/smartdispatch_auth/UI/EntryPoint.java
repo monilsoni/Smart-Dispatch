@@ -23,6 +23,7 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
         findViewById(R.id.admin_login_button).setOnClickListener(this);
 
         // Check if the user is already authenticated in the system & redirect accordingly
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user != null){
             Intent intent = new Intent(EntryPoint.this, LoginActivity.class);
@@ -34,11 +35,13 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
                    intent.putExtra("authenticator", "vehicle");
                else
                    intent.putExtra("authenticator", "hospital");
+
+                startActivity(intent);
+                finish();
             }else{
-                intent.putExtra("authenticator", "requester");
+                findViewById(R.id.vehicle_login_button).setVisibility(View.GONE);
+                findViewById(R.id.hospital_login_button).setVisibility(View.GONE);
             }
-            startActivity(intent);
-            finish();
 
         }
     }

@@ -1,5 +1,6 @@
 package com.example.smartdispatch_auth.UI;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -7,13 +8,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.Admin.AdminMainActivity;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
-import com.example.smartdispatch_auth.UI.Requester.RegisterActivity;
 import com.example.smartdispatch_auth.UI.Requester.UserMainActivity;
 import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
@@ -23,12 +22,15 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import static android.text.TextUtils.isEmpty;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "LoginActivity";
 
+    private ProgressDialog progress;
+
     private EditText mEmail, mPassword;
-    private ProgressBar mProgressBar;
 
     // vars
     private String authenticator;
@@ -39,16 +41,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mProgressBar = findViewById(R.id.progressBar);
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Logging In");
+        progress.setCancelable(false);
+
         mEmail = findViewById(R.id.email);
         mPassword = findViewById(R.id.password);
 
         Intent intent = getIntent();
         authenticator = intent.getStringExtra("authenticator");
-        if(!authenticator.equals("requester")){
-            findViewById(R.id.link_register).setVisibility(View.GONE);
-        }
-
         setupFirebaseAuth();
         findViewById(R.id.email_log_in_button).setOnClickListener(this);
         findViewById(R.id.link_register).setOnClickListener(this);
@@ -75,6 +77,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         switch (v.getId()) {
             case R.id.link_register: {
                 Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                intent.putExtra("user", "requester");
                 startActivity(intent);
                 break;
             }
@@ -127,7 +130,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                         case "admin" :{
                             Intent intent = new Intent(LoginActivity.this, AdminMainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
                             break;
@@ -147,9 +150,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String email = mEmail.getText().toString();
         final String password = mPassword.getText().toString();
 
-        if (email != null && password != null) {
+        if (!isEmpty(email) && !isEmpty(password)) {
 
-            Utilities.showDialog(mProgressBar);
+            progress.show();
+
 
             boolean check = true;
             if(!authenticator.equals("requester")){
@@ -163,9 +167,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
 
+            if(authenticator.equals("admin"))
+                check = true;
+
             if(!check){
                 Toast.makeText(LoginActivity.this, "Invalid Email Address", Toast.LENGTH_SHORT).show();
-                Utilities.hideDialog(mProgressBar);
+                progress.hide();
+                return;
             }
 
 
@@ -188,7 +196,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                                 Toast.makeText(LoginActivity.this, "Authentication failed. ", Toast.LENGTH_SHORT).show();
                             }
-                            Utilities.hideDialog(mProgressBar);
+                            progress.dismiss();
                         }
                     });
         } else {

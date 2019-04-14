@@ -17,5 +17,6 @@
     <string name="gps_not_connected">GPS: Not Connected</string>
     <string name="internet_connected">Internet: Connected</string>
     <string name="gps_connected">GPS: Connected</string>
+    <string name="collection_request">Request</string>
 
 </resources>

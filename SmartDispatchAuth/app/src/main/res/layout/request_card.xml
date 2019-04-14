@@ -16,7 +16,9 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:cardCornerRadius="2dp"
-        app:cardElevation="7dp">
+        app:cardElevation="7dp"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#FF0000">
+                android:background="@color/colorPrimaryDark">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -37,7 +39,7 @@
                     android:padding="10dp"
                     android:textSize="14dp"
                     android:textColor="#FFF"
-                    android:background="#FF0000"/>
+                    android:background="@color/colorPrimaryDark"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -59,7 +61,7 @@
                         android:id="@+id/drivername"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#EEE"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                 </LinearLayout>
@@ -84,7 +86,7 @@
                         android:id="@+id/contactno"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#EEE"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                 </LinearLayout>
@@ -110,7 +112,7 @@
                         android:id="@+id/vehicleno"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#EEE"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                 </LinearLayout>
@@ -119,7 +121,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/textviewborder">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -128,8 +131,8 @@
                     android:textAlignment="center"
                     android:padding="10dp"
                     android:textSize="14dp"
-                    
-                    android:textColor="#FF0000"
+                    android:fontFamily="sans-serif"
+                    android:textColor="@color/colorPrimaryDark"
                     android:translationZ="5dp"/>
 
                 <LinearLayout
@@ -145,14 +148,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:text="Name : "
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/ColorSecondary"
                         android:textSize="12dp"/>
 
                     <TextView
                         android:id="@+id/usrname"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                 </LinearLayout>
@@ -170,14 +173,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:text="Age : "
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/ColorSecondary"
                         android:textSize="12dp"/>
 
                     <TextView
                         android:id="@+id/usrage"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                     <TextView
@@ -185,7 +188,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:text="Sex : "
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/ColorSecondary"
                         android:textSize="12dp"
                         android:layout_marginStart="20dp"/>
 
@@ -193,7 +196,7 @@
                         android:id="@+id/usrsex"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:textColor="#F04C4C"
+                        android:textColor="@color/colorPrimaryLight"
                         android:textSize="12dp"/>
 
                 </LinearLayout>
@@ -204,12 +207,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
                     android:layout_marginVertical="10dp"
-                    android:background="#FF6500"
+                    android:background="@drawable/light_button_background"
                     android:text="end request"
                     android:textColor="#FFF"
                     android:textSize="13dp"
                     android:paddingHorizontal="10dp"
-                    android:layout_gravity="end" />
+                    android:layout_gravity="end"
+                    android:fontFamily="sans-serif"/>
             </LinearLayout>
 
         </LinearLayout>
