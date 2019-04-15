@@ -108,7 +108,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Request request = document.toObject(Request.class);
-                                    if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
+                                    if (request.getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                                         mRequest = request;
                                         Toast.makeText(VehicleMainActivity.this, "Got the request!", Toast.LENGTH_SHORT).show();
 
@@ -117,15 +117,9 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                                                 "&name="+mRequest.getVehicle().getDriver_name()+
                                                 "&no="+mRequest.getVehicle().getVehicle_number());
 
-                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifHospital?id="+
-                                                mRequest.getHospital().getUser_id()+
-                                                "&name="+mRequest.getVehicle().getDriver_name()+
-                                                "&no="+mRequest.getVehicle().getVehicle_number());
-
-
                                         Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
                                         mapIntent.putExtra("request", mRequest);
-                                        startActivity(intent);
+                                        startActivity(mapIntent);
                                     }
 
                                 }
@@ -211,7 +205,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         set = true;
 
         final DocumentReference docRef = FirebaseFirestore.getInstance()
-                .collection(getString(R.string.collection_users))
+                .collection(getString(R.string.collection_vehicles))
                 .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {

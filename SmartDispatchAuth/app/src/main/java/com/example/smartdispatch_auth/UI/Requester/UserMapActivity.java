@@ -120,8 +120,6 @@ public class UserMapActivity extends AppCompatActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             vehicle_alloted = true;
-            calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                    mRequest.getRequester().getGeoPoint());
 
         }
     };
@@ -131,8 +129,7 @@ public class UserMapActivity extends AppCompatActivity implements
         public void onReceive(Context context, Intent intent) {
             vehicle_reached = true;
             vehicle_alloted = false;
-            calculateDirections(mRequest.getRequester().getGeoPoint(),
-                    mRequest.getHospital().getGeoPoint());
+
         }
 
     };

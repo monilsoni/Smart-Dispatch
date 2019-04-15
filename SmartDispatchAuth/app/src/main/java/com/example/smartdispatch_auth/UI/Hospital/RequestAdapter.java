@@ -90,9 +90,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                 internet =  cm.getActiveNetworkInfo() != null;
 
                 if (internet) {
-                    Intent i = new Intent("remove");
-                    i.putExtra("index", i);
-                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(i);
 
                     FirebaseFirestore.getInstance().collection("Requests")
                             .get()
@@ -106,6 +103,10 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                             if(request.getRequester().getUser_id().equals(requests.get(k).getRequester().getUser_id())){
                                                 document.getReference().delete();
                                                 FirebaseFirestore.getInstance().collection("Request History").add(request);
+
+                                                Intent i = new Intent("remove");
+                                                i.putExtra("index", k);
+                                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(i);
                                             }
 
                                         }

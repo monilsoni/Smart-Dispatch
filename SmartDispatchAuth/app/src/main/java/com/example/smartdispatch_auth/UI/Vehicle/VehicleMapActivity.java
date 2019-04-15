@@ -112,6 +112,8 @@ public class VehicleMapActivity extends AppCompatActivity implements
 
         }
 
+        initGoogleMap(savedInstanceState);
+
     }
 
     /* Helper methods */

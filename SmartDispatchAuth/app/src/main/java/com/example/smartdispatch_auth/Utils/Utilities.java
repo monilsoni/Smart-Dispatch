@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -12,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class Utilities {
 
@@ -37,6 +40,7 @@ public class Utilities {
 
     public static class GetUrlContentTask extends AsyncTask<String, Integer, String> {
         protected String doInBackground(String... url2) {
+            String content = "";
             try {
                 URL url = new URL(url2[0]);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -46,16 +50,17 @@ public class Utilities {
                 connection.setReadTimeout(5000);
                 connection.connect();
                 BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String content = "", line;
+                String line;
                 while ((line = rd.readLine()) != null) {
                     content += line + "\n";
                 }
 
-
-                return content;
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                content = "";
+                Log.d(TAG, "doInBackground: "+ e.toString());
             }
+
+            return content;
         }
 
         protected void onProgressUpdate(Integer... progress) {
