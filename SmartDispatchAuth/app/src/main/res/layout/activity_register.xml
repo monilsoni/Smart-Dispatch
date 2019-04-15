@@ -97,21 +97,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Male"
-                    android:textColor="@color/ColorSecondary" />
+                    android:textColor="@color/ColorSecondary"
+                    android:onClick="onRadioButtonClicked"/>
 
                 <RadioButton
                     android:id="@+id/radio_female"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Female"
-                    android:textColor="@color/ColorSecondary" />
+                    android:textColor="@color/ColorSecondary"
+                    android:onClick="onRadioButtonClicked"/>
 
                 <RadioButton
                     android:id="@+id/radio_other"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Other"
-                    android:textColor="@color/ColorSecondary" />
+                    android:textColor="@color/ColorSecondary"
+                    android:onClick="onRadioButtonClicked"/>
 
             </RadioGroup>
 
@@ -154,7 +157,7 @@
                 android:layout_marginEnd="20dp"
                 android:layout_marginBottom="8dp"
                 android:hint="Vehicle Number"
-                android:inputType="number"
+                android:inputType="text"
                 android:textSize="15dp"
                 android:textColor="@color/ColorSecondary"
                 android:textColorHint="@color/colorPrimaryLight"

@@ -54,6 +54,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     //Variables
 
     private int severity;
+    private Location currloc;
 
     private ProgressDialog progress;
     private Requester requester;
@@ -76,6 +77,10 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         findViewById(R.id.sendSMSButton).setOnClickListener(this);
 
         requester = ((UserClient) getApplicationContext()).getRequester();
+
+        currloc = new Location("");
+        currloc.setLongitude(requester.getGeoPoint().getLongitude());
+        currloc.setLatitude(requester.getGeoPoint().getLatitude());
     }
 
     @Override
@@ -114,9 +119,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         Timestamp ts = new Timestamp(date.getTime());
 
         // double latitude = 23.56, longitude = 26.56;
-        Location currloc = new Location("");
-        currloc.setLongitude(requester.getGeoPoint().getLongitude());
-        currloc.setLatitude(requester.getGeoPoint().getLatitude());
 
 
         FirebaseFirestore.getInstance().collection("Cluster Main").get()
@@ -138,70 +140,109 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                             }
                         }
 
+                        ArrayList<Vehicle> Available_Vehicles = new ArrayList<Vehicle>();
                         Vehicle nearestVehicle;
-                        int vehicles_count = nearestCluster.getVehicles().size();
 
-                        int x = ThreadLocalRandom.current().nextInt(0, vehicles_count);
-                        nearestVehicle = nearestCluster.getVehicles().get(x);
+                        for (Vehicle vehicle : nearestCluster.getVehicles()) {
+                            if (vehicle.getEngage() == 0)
+                                Available_Vehicles.add(vehicle);
+                        }
 
+                        int vehicles_count = Available_Vehicles.size();
+                        if (vehicles_count == 0)
+                            Log.d("Vehicle-count", "no free vehicles");
+                        else {
 
-                        FirebaseFirestore.getInstance().collection("Hospital").get()
-                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                    float temp = Float.MAX_VALUE;
+                            int x = (int) (Math.random() * ((vehicles_count - 1) + 1));
+                            nearestVehicle = nearestCluster.getVehicles().get(x);
 
-                                    @Override
-                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                        Hospital nearestHospital = new Hospital();
+                            FirebaseFirestore.getInstance().collection("Hospital").get()
+                                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                        float temp = Float.MAX_VALUE;
 
-                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                        @Override
+                                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                            Hospital nearestHospital = new Hospital();
 
-                                            Hospital h = document.toObject(Hospital.class);
+                                            for (QueryDocumentSnapshot document : task.getResult()) {
 
-                                            Location l1 = new Location("");
-                                            l1.setLongitude(h.getGeoPoint().getLatitude());
-                                            l1.setLongitude(h.getGeoPoint().getLongitude());
+                                                Hospital h = document.toObject(Hospital.class);
 
-                                            if (temp >= currloc.distanceTo(l1)) {
-                                                temp = currloc.distanceTo(l1);
-                                                nearestHospital = h;
+                                                Location l1 = new Location("");
+                                                l1.setLongitude(h.getGeoPoint().getLatitude());
+                                                l1.setLongitude(h.getGeoPoint().getLongitude());
+
+                                                if (temp >= currloc.distanceTo(l1)) {
+                                                    temp = currloc.distanceTo(l1);
+                                                    nearestHospital = h;
+                                                }
                                             }
+
+
+                                            String typeofemergency = "";
+                                            if (mChkbox_medical.isChecked()) {
+                                                if (typeofemergency != "")
+                                                    typeofemergency += ",";
+                                                typeofemergency += "Medical ";
+                                            }
+
+                                            if (mChkbox_fire.isChecked()) {
+                                                if (typeofemergency != "")
+                                                    typeofemergency += ",";
+                                                typeofemergency += "Fire ";
+                                            }
+
+                                            if (mChkbox_other.isChecked()) {
+                                                if (typeofemergency != "")
+                                                    typeofemergency += ",";
+                                                typeofemergency += "Other";
+                                            }
+
+                                            int scaleofemergency = mSeek_severity.getProgress();
+
+                                            Request request = new Request(
+                                                    requester,
+                                                    nearestVehicle,
+                                                    nearestHospital,
+                                                    typeofemergency,
+                                                    scaleofemergency
+                                            );
+
+
+                                            Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
+                                            FirebaseFirestore.getInstance().collection("Requests").add(request)
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+                                                            Log.d(TAG, "onSuccess: Request Stored.");
+                                                            progress.dismiss();
+
+                                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                            intent.putExtra("request", request);
+
+                                                            new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifVehicle?id=" +
+                                                                    request.getVehicle().getUser_id() +
+                                                                    "&name=" + request.getRequester().getName());
+
+                                                            new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifHospital?id=" +
+                                                                    request.getHospital().getUser_id() +
+                                                                    "&name=" + request.getRequester().getName());
+
+                                                            startActivity(intent);
+                                                            finish();
+
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    progress.dismiss();
+                                                    Log.d(TAG, "onFailure: Request failed to store.");
+                                                }
+                                            });
+
                                         }
-
-
-                                        Request request = new Request(
-                                                requester,
-                                                nearestVehicle,
-                                                nearestHospital
-                                        );
-
-
-                                        Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
-                                        FirebaseFirestore.getInstance().collection("Requests").add(request)
-                                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                    @Override
-                                                    public void onSuccess(DocumentReference documentReference) {
-                                                        Log.d(TAG, "onSuccess: Request Stored.");
-                                                        intent.putExtra("request", request);
-                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifVehicle?id="+
-                                                                request.getVehicle().getUser_id()+
-                                                                "&name="+request.getRequester().getName());
-
-                                                    }
-                                                }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Log.d(TAG, "onFailure: Request failed to store.");
-                                            }
-                                        });
-                                        progress.dismiss();
-
-                                        startActivity(intent);
-                                        finish();
-                                    }
-                                });
-
+                                    });
+                        }
 
                     }
                 });
@@ -230,7 +271,8 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_SEND_SMS: {
                 if (grantResults.length > 0
@@ -289,9 +331,9 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     @Override
     protected void onResume() {
         super.onResume();
-        if(Utilities.checkInternetConnectivity(this)){
+        if (Utilities.checkInternetConnectivity(this)) {
             findViewById(R.id.sendSMSButton).setVisibility(View.GONE);
-        }else{
+        } else {
             findViewById(R.id.sendrequestButton).setVisibility(View.GONE);
         }
     }

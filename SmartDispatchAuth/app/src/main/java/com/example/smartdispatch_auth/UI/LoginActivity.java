@@ -21,6 +21,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.iid.FirebaseInstanceId;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.text.TextUtils.isEmpty;
 
@@ -76,9 +82,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.link_register: {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                intent.putExtra("user", "requester");
-                startActivity(intent);
+                if(authenticator.equals("requester")) {
+                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    intent.putExtra("user", "requester");
+                    startActivity(intent);
+                }
+                else if(authenticator.equals("hospital")){
+                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    intent.putExtra("user", "hospital");
+                    startActivity(intent);
+                }
+                else{
+                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    intent.putExtra("user", "vehicle");
+                    startActivity(intent);
+                }
                 break;
             }
 
@@ -105,6 +123,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     switch (authenticator){
                         case "requester": {
+                            /*
+                            Map<String, Object> token = new HashMap<>();
+                            token.put("token", FirebaseInstanceId.getInstance().getToken());
+                            if(FirebaseAuth.getInstance().getCurrentUser() != null)
+                                FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+
+                            */
                             Intent intent = new Intent(LoginActivity.this, UserMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);

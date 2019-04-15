@@ -101,7 +101,11 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             // todo: Fill in the vehicle layout
             mRequest = intent.getParcelableExtra("request");
             findViewById(R.id.submit_request).setVisibility(View.GONE);
+            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
         }else{
+            Log.d(TAG, "onCreate: You have no requests pending");
+            findViewById(R.id.submit_request).setVisibility(View.VISIBLE);
             findViewById(R.id.look_at_map).setVisibility(View.GONE);
             findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
         }
@@ -291,34 +295,43 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             }
         }
 
-        if(checkForRequests())
-            findViewById(R.id.submit_request).setVisibility(View.GONE);
-
+        checkForRequests();
     }
 
-    private boolean checkForRequests() {
-        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Request request = document.toObject(Request.class);
-                                if (request.getVehicle().getUser_id() == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
-                                    mRequest = request;
-                                }
+    private void checkForRequests() {
+        if(mRequest == null){
+            FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Request request = document.toObject(Request.class);
+                                    if (request.getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                        mRequest = request;
 
+                                        Log.d(TAG, "onComplete: Oleoleole");
+                                        findViewById(R.id.submit_request).setVisibility(View.GONE);
+                                        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+                                        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+                                    }
+
+                                }
                             }
+
                         }
 
-                    }
+                    });
 
-                });
+        }else{
 
-        if(mRequest != null)
-            return true;
+            Log.d(TAG, "checkForRequests: Request abhi baaki hai mere dost");
+            findViewById(R.id.submit_request).setVisibility(View.GONE);
+            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+        }
 
-        return false;
+
     }
 
 

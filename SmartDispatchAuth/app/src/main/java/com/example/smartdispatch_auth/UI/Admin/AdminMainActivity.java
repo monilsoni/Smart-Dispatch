@@ -2,8 +2,10 @@ package com.example.smartdispatch_auth.UI.Admin;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +14,18 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Cluster;
+import com.example.smartdispatch_auth.Models.SMSRequest;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.Models.ClusterFetch;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.Services.SMSBroadcastReceiver;
 import com.example.smartdispatch_auth.UI.LoginActivity;
 import com.example.smartdispatch_auth.UI.RegisterActivity;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -31,12 +39,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class AdminMainActivity extends AppCompatActivity implements View.OnClickListener{
+public class AdminMainActivity extends AppCompatActivity implements View.OnClickListener, SMSBroadcastReceiver.REQReceiveListener{
 
     private final static String TAG = "AdminMainActivity";
 
     private static ArrayList<Vehicle> vehicles;
     private static ProgressDialog progress;
+    private SMSBroadcastReceiver smsbroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,39 +53,76 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.activity_admin_main);
 
         findViewById(R.id.allocateVehicle).setOnClickListener(this);
-        findViewById(R.id.register_hospital).setOnClickListener(this);
-        findViewById(R.id.register_vehicle).setOnClickListener(this);
+        findViewById(R.id.current_request).setOnClickListener(this);
+        findViewById(R.id.request_history).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
         progress.setMessage("Creating clusters and assigning vehicles...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
+        startsmslistner();
+
     }
+
+    private void startsmslistner() {
+
+        try {
+            smsbroadcast = new SMSBroadcastReceiver();
+            smsbroadcast.setREQListener(this);
+
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(SmsRetriever.SMS_RETRIEVED_ACTION);
+            this.registerReceiver(smsbroadcast, intentFilter);
+
+            SmsRetrieverClient client = SmsRetriever.getClient(this);
+
+            Task<Void> task = client.startSmsRetriever();
+            task.addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // API successfully started
+                    //showToast("Listening");
+                }
+            });
+
+            task.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    // Fail to start API
+                    //showToast("Not Listening");
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void onClick(View v) {
+
         switch (v.getId()){
             case R.id.allocateVehicle: {
                 progress.show();
                 // todo : change the number of vehicles here
                 new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve?vehicles=1");
-            }
-
-            case R.id.register_hospital: {
-                Intent intent = new Intent(AdminMainActivity.this, RegisterActivity.class);
-                intent.putExtra("user", "hospital");
-                startActivity(intent);
-                finish();
                 break;
             }
 
-            case R.id.register_vehicle: {
-                Intent intent = new Intent(AdminMainActivity.this, RegisterActivity.class);
-                intent.putExtra("user", "vehicle");
+            case R.id.current_request:{
+                Intent intent = new Intent(AdminMainActivity.this, AdminCurrentRequest.class);
                 startActivity(intent);
-                finish();
                 break;
             }
+
+            case R.id.request_history: {
+                Intent intent = new Intent(AdminMainActivity.this, AdminRequestHistory.class);
+                startActivity(intent);
+                break;
+            }
+
+
+
         }
 
     }
@@ -161,5 +207,45 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
 
         }
     }
+
+    @Override
+    public void onREQReceived(String req) {
+
+       // showToast("recieved");
+
+        Parserequest(req);
+        //t_type.setText(req);
+
+        if (smsbroadcast != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(smsbroadcast);
+        }
+
+    }
+
+    @Override
+    public void onREQTimeOut() {
+        //showToast("REQ Time out");
+    }
+
+    @Override
+    public void onREQReceivedError(String error) {
+        //showToast(error);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (smsbroadcast != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(smsbroadcast);
+        }
+    }
+
+    private void Parserequest(String req) {
+
+        String data[] = req.split("\\n");
+        SMSRequest request = new SMSRequest(data[1],data[2],data[3],data[4],data[5]);
+
+    }
+
 
 }

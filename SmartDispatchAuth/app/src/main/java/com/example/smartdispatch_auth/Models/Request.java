@@ -19,20 +19,26 @@ public class Request implements Parcelable {
     private Requester requester;
     private Vehicle vehicle;
     private Hospital hospital;
+    private String typeofemergency;
+    private int scaleofemergency;
 
     protected Request(Parcel in) {
         requester = in.readParcelable(Requester.class.getClassLoader());
         vehicle = in.readParcelable(Vehicle.class.getClassLoader());
         hospital = in.readParcelable(Hospital.class.getClassLoader());
+        typeofemergency = in.readString();
+        scaleofemergency = in.readInt();
     }
 
     public Request() {
     }
 
-    public Request(Requester requester, Vehicle vehicle, Hospital hospital) {
+    public Request(Requester requester, Vehicle vehicle, Hospital hospital, String typeofemergency, int scaleofemergency) {
         this.requester = requester;
         this.vehicle = vehicle;
         this.hospital = hospital;
+        this.typeofemergency = typeofemergency;
+        this.scaleofemergency = scaleofemergency;
     }
 
     @Override
@@ -41,7 +47,25 @@ public class Request implements Parcelable {
                 "requester=" + requester +
                 ", vehicleLocation=" + vehicle +
                 ", hospital=" + hospital +
+                ", typeofemergency=" + typeofemergency +
+                ", scaleofemergency=" + scaleofemergency +
                 '}';
+    }
+
+    public String getTypeofemergency() {
+        return typeofemergency;
+    }
+
+    public void setTypeofemergency(String typeofemergency) {
+        this.typeofemergency = typeofemergency;
+    }
+
+    public int getScaleofemergency() {
+        return scaleofemergency;
+    }
+
+    public void setScaleofemergency(int scaleofemergency) {
+        this.scaleofemergency = scaleofemergency;
     }
 
     public Requester getRequester() {
@@ -78,5 +102,7 @@ public class Request implements Parcelable {
         dest.writeParcelable(requester, flags);
         dest.writeParcelable(vehicle, flags);
         dest.writeParcelable(hospital, flags);
+        dest.writeString(typeofemergency);
+        dest.writeInt(scaleofemergency);
     }
 }

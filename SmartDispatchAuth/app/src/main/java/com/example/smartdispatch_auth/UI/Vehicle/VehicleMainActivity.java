@@ -23,12 +23,16 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.RequesterLocationService;
+import com.example.smartdispatch_auth.Services.VehicleLocationService;
+import com.example.smartdispatch_auth.UI.EntryPoint;
+import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -53,7 +57,7 @@ import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCES
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_INTERNET;
 
-public class VehicleMainActivity extends AppCompatActivity {
+public class VehicleMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "VehicleMainActivity";
 
@@ -77,6 +81,8 @@ public class VehicleMainActivity extends AppCompatActivity {
                 mMessageReceiver, new IntentFilter("get"));
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        findViewById(R.id.sign_out).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
         progress.setMessage("Loading your data");
@@ -106,12 +112,12 @@ public class VehicleMainActivity extends AppCompatActivity {
                                         mRequest = request;
                                         Toast.makeText(VehicleMainActivity.this, "Got the request!", Toast.LENGTH_SHORT).show();
 
-                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifRequester?id="+
+                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequester?id="+
                                                 mRequest.getRequester().getUser_id()+
                                                 "&name="+mRequest.getVehicle().getDriver_name()+
                                                 "&no="+mRequest.getVehicle().getVehicle_number());
 
-                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifHospital?id="+
+                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifHospital?id="+
                                                 mRequest.getHospital().getUser_id()+
                                                 "&name="+mRequest.getVehicle().getDriver_name()+
                                                 "&no="+mRequest.getVehicle().getVehicle_number());
@@ -230,6 +236,21 @@ public class VehicleMainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.sign_out:{
+                FirebaseAuth.getInstance().signOut();
+
+                Intent intent = new Intent(VehicleMainActivity.this, EntryPoint.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                break;
+            }
+        }
+    }
+
     /* Checking the GPS and stuff */
 
     public class CheckConnectivity extends BroadcastReceiver {
@@ -301,7 +322,7 @@ public class VehicleMainActivity extends AppCompatActivity {
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, RequesterLocationService.class);
+            Intent serviceIntent = new Intent(this, VehicleLocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 VehicleMainActivity.this.startForegroundService(serviceIntent);

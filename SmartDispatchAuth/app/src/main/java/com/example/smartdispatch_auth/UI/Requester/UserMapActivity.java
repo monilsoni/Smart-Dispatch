@@ -450,6 +450,7 @@ public class UserMapActivity extends AppCompatActivity implements
         );
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
+
         if(vehicle_alloted)
             calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());

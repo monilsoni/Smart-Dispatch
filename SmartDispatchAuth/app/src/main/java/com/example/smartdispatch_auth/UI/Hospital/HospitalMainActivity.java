@@ -21,6 +21,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.Models.Request;
@@ -29,9 +30,9 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.HospitalLocationService;
+import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UI.Requester.UserMainActivity;
 import com.example.smartdispatch_auth.UserClient;
-import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -50,127 +51,26 @@ import java.util.List;
 
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
-public class HospitalMainActivity extends AppCompatActivity {
+public class HospitalMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "HospitalMainActivity";
-
-    // widgets
-    TextView emptyListMessage;
-    ProgressDialog progress;
-    List<RequestDisp> requestList;
-    List<Request> requests;
-    RequestAdapter adapter;
-    int recurrentRead = 0;
-
     // vars
     private FusedLocationProviderClient mFusedLocationClient;
     private Hospital mHospital;
-    private android.support.v7.widget.RecyclerView recyclerView;
-    private android.support.v7.widget.RecyclerView.LayoutManager layoutManager;
-    private BroadcastReceiver removeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int k = intent.getIntExtra("index", 0);
-            requestList.remove(k);
-            requests.remove(k);
-            adapter.notifyDataSetChanged();
-            if (requestList.size() == 0) {
-
-                emptyListMessage.setVisibility(View.VISIBLE);
-            }
-        }
-    };
-
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            updateUI(null);
-        }
-
-    };
-
-    private void updateList() {
-        emptyListMessage.setVisibility(View.INVISIBLE);
-        recyclerView.setHasFixedSize(true);
-
-        layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
-
-        adapter = new RequestAdapter(getApplicationContext(), requestList, requests);
-        recyclerView.setAdapter(adapter);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hospital_main);
 
-        emptyListMessage = findViewById(R.id.empty_list_message);
-
-        progress = new ProgressDialog(this);
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
-        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-
-        recyclerView = (android.support.v7.widget.RecyclerView) findViewById(R.id.recyclerView);
-
+        findViewById(R.id.current_request).setOnClickListener(this);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("send"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                removeReceiver, new IntentFilter("remove"));
+        findViewById(R.id.sign_out).setOnClickListener(this);
+
 
     }
 
-    private void updateUI(FirebaseUser user) {
-        progress.show();
-        recurrentRead = 0;
-        requestList = new ArrayList<>();
-        requests = new ArrayList<>();
-
-        FirebaseFirestore.getInstance().collection("Requests").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                recurrentRead++;
-                if (recurrentRead == 1) {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-
-                            Request request = document.toObject(Request.class);
-                            String id = request.getHospital().getUser_id();
-
-                            if (FirebaseAuth.getInstance().getCurrentUser().getUid().equals(id)) {
-                                Requester requester = request.getRequester();
-                                Vehicle vehicle = request.getVehicle();
-
-                                requestList.add(new RequestDisp(
-                                        requester.getName(),
-                                        requester.getAge(),
-                                        requester.getSex(),
-                                        vehicle.getDriver_name(),
-                                        vehicle.getPhone_number(),
-                                        vehicle.getVehicle_number()
-                                ));
-                                requests.add(request);
-                            }
-                            Log.d(TAG, document.getId() + " => " + document.getData());
-                        }
-                    } else {
-                        Log.d(TAG, "Error getting documents: ", task.getException());
-                    }
-
-                    progress.dismiss();
-                    if (requestList.size() != 0)
-                        updateList();
-
-                    else
-                        emptyListMessage.setVisibility(View.VISIBLE);
-
-                }
-            }
-        });
-    }
 
     @Override
     protected void onResume() {
@@ -179,9 +79,6 @@ public class HospitalMainActivity extends AppCompatActivity {
         if (isMapsEnabled()) {
             getHospitalDetails();
         }
-
-        emptyListMessage.setVisibility(View.INVISIBLE);
-        updateUI(null);
     }
 
     /*  GPS Service  */
@@ -301,5 +198,23 @@ public class HospitalMainActivity extends AppCompatActivity {
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId() == R.id.current_request){
+            Intent intent = new Intent(HospitalMainActivity.this, HospitalCurrentRequestActivity.class);
+            startActivity(intent);
+        }else if(v.getId() == R.id.sign_out){
+            FirebaseAuth.getInstance().signOut();
+
+            Intent intent = new Intent(HospitalMainActivity.this, EntryPoint.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        }else{
+            Toast.makeText(HospitalMainActivity.this, "Youzaa", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }

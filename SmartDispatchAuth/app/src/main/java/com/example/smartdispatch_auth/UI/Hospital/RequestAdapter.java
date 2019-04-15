@@ -76,6 +76,8 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
         requestViewHolder.contactno.setText(request.getContactno());
         requestViewHolder.vehicleno.setText(request.getVehicleno());
 
+        final int k = i;
+
 
 
         requestViewHolder.button.setOnClickListener(new View.OnClickListener() {
@@ -93,14 +95,19 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(i);
 
                     FirebaseFirestore.getInstance().collection("Requests")
-                            .whereEqualTo("usrname", request.getUsrname()).get()
+                            .get()
                             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<QuerySnapshot> task) {
 
                                     if (task.isSuccessful()) {
                                         for (QueryDocumentSnapshot document : task.getResult()) {
-                                            document.getReference().delete();
+                                            Request request = document.toObject(Request.class);
+                                            if(request.getRequester().getUser_id().equals(requests.get(k).getRequester().getUser_id())){
+                                                document.getReference().delete();
+                                                FirebaseFirestore.getInstance().collection("Request History").add(request);
+                                            }
+
                                         }
                                     } else {
                                         Log.d("data", "Error getting documents: ", task.getException());

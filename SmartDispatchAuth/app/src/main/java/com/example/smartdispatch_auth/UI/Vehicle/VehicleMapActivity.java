@@ -511,12 +511,12 @@ public class VehicleMapActivity extends AppCompatActivity implements
                 calculateDirections(mRequest.getRequester().getGeoPoint(),
                             mRequest.getHospital().getGeoPoint());
 
-                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifRequesterReached?id="+
+                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequesterReached?id="+
                         mRequest.getRequester().getUser_id()+
                         "&name="+mRequest.getVehicle().getDriver_name()+
                         "&no="+mRequest.getVehicle().getVehicle_number());
 
-                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunction.net/sendNotifHospitalReached?id="+
+                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifHospitalReached?id="+
                         mRequest.getHospital().getUser_id()+
                         "&name="+mRequest.getVehicle().getDriver_name()+
                         "&no="+mRequest.getVehicle().getVehicle_number());

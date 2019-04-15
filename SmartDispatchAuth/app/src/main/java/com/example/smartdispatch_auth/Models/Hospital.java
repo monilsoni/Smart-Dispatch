@@ -21,7 +21,7 @@ public class Hospital extends User implements Parcelable {
         }
     };
 
-    private String hospital_name;
+    private String hospital_name, contactno;
 
     protected Hospital(Parcel in) {
         double latitude = in.readDouble();
@@ -33,12 +33,13 @@ public class Hospital extends User implements Parcelable {
         email = in.readString();
         user_id = in.readString();
         token = in.readString();
+        contactno = in.readString();
     }
 
     public Hospital() {
     }
 
-    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id, String token, String type) {
+    public Hospital(GeoPoint geoPoint, Date timeStamp, String hospital_name, String email, String user_id, String token, String type, String contactno) {
         this.geoPoint = geoPoint;
         this.timeStamp = timeStamp;
         this.hospital_name = hospital_name;
@@ -46,6 +47,15 @@ public class Hospital extends User implements Parcelable {
         this.email = email;
         this.user_id = user_id;
         this.token = token;
+        this.contactno = contactno;
+    }
+
+    public String getContactno() {
+        return contactno;
+    }
+
+    public void setContactno(String contactno) {
+        this.contactno = contactno;
     }
 
     @Override
@@ -58,6 +68,7 @@ public class Hospital extends User implements Parcelable {
                 ", geoPoint=" + geoPoint +
                 ", timeStamp=" + timeStamp +
                 ", token=" + token +
+                ", contactno=" + contactno +
                 '}';
     }
 
@@ -100,5 +111,6 @@ public class Hospital extends User implements Parcelable {
         dest.writeString(email);
         dest.writeString(user_id);
         dest.writeString(token);
+        dest.writeString(contactno);
     }
 }

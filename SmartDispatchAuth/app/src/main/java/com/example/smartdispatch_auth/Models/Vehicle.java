@@ -20,8 +20,8 @@ public class Vehicle extends User implements Parcelable {
             return new Vehicle[size];
         }
     };
-    private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number;
     int engage;
+    private String driver_name, driver_age, vehicle_number, phone_number, license_number, aadhar_number;
 
     public Vehicle(String driver_name, String driver_age, String vehicle_number, String phone_number, String license_number, String aadhar_number, String email, String user_id, GeoPoint geoPoint, Date timeStamp, String type, String token, int engage) {
         this.driver_name = driver_name;
@@ -59,6 +59,14 @@ public class Vehicle extends User implements Parcelable {
         type = in.readString();
         token = in.readString();
         engage = in.readInt();
+    }
+
+    public int getEngage() {
+        return engage;
+    }
+
+    public void setEngage(int engage) {
+        this.engage = engage;
     }
 
     public String getDriver_name() {

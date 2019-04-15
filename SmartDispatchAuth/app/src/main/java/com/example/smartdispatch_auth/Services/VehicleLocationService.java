@@ -136,7 +136,7 @@ public class VehicleLocationService extends Service {
 
         try{
             DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_hospital))
+                    .collection(getString(R.string.collection_vehicles))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
             locationRef.set(vehicle).addOnCompleteListener(new OnCompleteListener<Void>() {
