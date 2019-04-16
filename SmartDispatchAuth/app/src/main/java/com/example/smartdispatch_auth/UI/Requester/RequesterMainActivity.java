@@ -90,72 +90,158 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         progress.setCancelable(false);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!Utilities.checkInternetConnectivity(this))
+            source = Source.CACHE;
+        else
+            source = Source.DEFAULT;
 
-    /*  GPS Service  */
+        checkForRequests();
 
-    private void startLocationService() {
-        if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, LocationService.class);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-
-                RequesterMainActivity.this.startForegroundService(serviceIntent);
+        if (checkMapServices()) {
+            if (mLocationPermissionGranted) {
+                getUserDetails();
             } else {
-                startService(serviceIntent);
+                getLocationPermission();
             }
         }
     }
 
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.example.smartdispatch_auth.Services.LocationService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
+    private void checkForRequests() {
+        Log.d(TAG, "checkForRequests: called");
+
+        mRequest = ((UserClient)getApplicationContext()).getRequest();
+        if(mRequest != null)
+            displayVehicle();
+
+        final Request[] request = new Request[1];
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "onComplete: task successful");
+                            for (QueryDocumentSnapshot document : task.getResult())
+                                if (document.exists()) {
+                                    request[0] = document.toObject(Request.class);
+                                    Log.d(TAG, "onComplete: "+request[0].toString());
+
+                                    if (request[0].getRequester().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                        mRequest = request[0];
+                                        ((UserClient) getApplicationContext()).setRequest(mRequest);
+
+                                        displayVehicle();
+                                        return;
+                                    }
+                                }
+                        }
+
+                    }
+                });
+
+    }
+
+    private boolean checkMapServices() {
+        if (isServicesOK()) {
+            return isMapsEnabled();
         }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         return false;
     }
-    /*  Override methods  */
+
+    public boolean isServicesOK() {
+        Log.d(TAG, "isServicesOK: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(RequesterMainActivity.this);
+
+        if (available == ConnectionResult.SUCCESS) {
+            //everything is fine and the user can make map requests
+            Log.d(TAG, "isServicesOK: Google Play Services is working");
+            return true;
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
+            //an error occured but we can resolve it
+            Log.d(TAG, "isServicesOK: an error occured but we can fix it");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(RequesterMainActivity.this, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
+        }
+        return false;
+    }
+
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+            getUserDetails();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.sign_out: {
-                FirebaseAuth.getInstance().signOut();
-
-                SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
-                editor.remove("type");
-
-                ((UserClient) getApplicationContext()).setRequester(null);
-                ((UserClient) getApplicationContext()).setRequest(null);
-
-                Intent intent = new Intent(RequesterMainActivity.this, EntryPoint.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-                break;
-            }
-
-            case R.id.look_at_map: {
-
-                Intent intent = new Intent(RequesterMainActivity.this, RequesterMapActivity.class);
-                intent.putExtra("request", mRequest);
-                startActivity(intent);
-                break;
-            }
-
-            case R.id.submit_request: {
-                Intent intent = new Intent(RequesterMainActivity.this, RequestForm.class);
-                startActivity(intent);
-                break;
-            }
-
-            case R.id.driver_phone: {
-                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mRequest.getVehicle().getPhone_number()));
-                startActivity(intent);
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                }
             }
         }
+    }
+
+    public boolean isMapsEnabled() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            buildAlertMessageNoGps();
+            return false;
+        }
+        return true;
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: called.");
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+                if (mLocationPermissionGranted) {
+                    getUserDetails();
+                } else {
+                    getLocationPermission();
+                }
+            }
+        }
+
     }
 
     /* Helper methods */
@@ -208,14 +294,13 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                     mRequester.setGeoPoint(geoPoint);
 
                     startLocationService();
-                    display();
+                    displayRequester();
                 }
             }
         });
     }
 
-
-    public void display() {
+    public void displayRequester() {
 
         // todo: modify the card to have two parts. then update the number part from here
 
@@ -226,168 +311,85 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!Utilities.checkInternetConnectivity(this))
-            source = Source.CACHE;
-        else
-            source = Source.DEFAULT;
+    public void displayVehicle() {
+        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
 
-        checkForRequests();
+        findViewById(R.id.submit_request).setVisibility(View.GONE);
 
-        if (checkMapServices()) {
-            if (mLocationPermissionGranted) {
-                getUserDetails();
+        ((TextView)findViewById(R.id.driver_name)).setText(mRequest.getVehicle().getDriver_name());
+        ((TextView)findViewById(R.id.vehicle_number)).setText(mRequest.getVehicle().getVehicle_number());
+
+    }
+
+    /*  GPS Service  */
+
+    private void startLocationService() {
+        if (!isLocationServiceRunning()) {
+            Intent serviceIntent = new Intent(this, LocationService.class);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+                RequesterMainActivity.this.startForegroundService(serviceIntent);
             } else {
-                getLocationPermission();
+                startService(serviceIntent);
             }
         }
     }
 
-    private void checkForRequests() {
-        Log.d(TAG, "checkForRequests: called");
-        
-        mRequest = ((UserClient)getApplicationContext()).getRequest();
-        if(mRequest != null){
-
-            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
-            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
-
-            findViewById(R.id.submit_request).setVisibility(View.GONE);
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.example.smartdispatch_auth.Services.LocationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
         }
-
-        final Request[] request = new Request[1];
-        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "onComplete: task successful");
-                            for (QueryDocumentSnapshot document : task.getResult())
-                                if (document.exists()) {
-                                    request[0] = document.toObject(Request.class);
-                                    Log.d(TAG, "onComplete: "+request[0].toString());
-
-                                    if (request[0].getRequester().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                                        mRequest = request[0];
-                                        ((UserClient) getApplicationContext()).setRequest(mRequest);
-
-                                        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
-                                        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
-
-                                        findViewById(R.id.submit_request).setVisibility(View.GONE);
-                                        return;
-                                    }
-                                }
-                        }
-
-                    }
-                });
-
-    }
-
-
-    private boolean checkMapServices() {
-        if (isServicesOK()) {
-            return isMapsEnabled();
-        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         return false;
     }
-
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    public boolean isMapsEnabled() {
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-            return false;
-        }
-        return true;
-    }
-
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-            getUserDetails();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    public boolean isServicesOK() {
-        Log.d(TAG, "isServicesOK: checking google services version");
-
-        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(RequesterMainActivity.this);
-
-        if (available == ConnectionResult.SUCCESS) {
-            //everything is fine and the user can make map requests
-            Log.d(TAG, "isServicesOK: Google Play Services is working");
-            return true;
-        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
-            //an error occured but we can resolve it
-            Log.d(TAG, "isServicesOK: an error occured but we can fix it");
-            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(RequesterMainActivity.this, available, ERROR_DIALOG_REQUEST);
-            dialog.show();
-        } else {
-            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
-        }
-        return false;
-    }
+    /*  Override methods  */
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        mLocationPermissionGranted = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
-                }
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_out: {
+                FirebaseAuth.getInstance().signOut();
+
+                SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                editor.remove("type");
+                editor.apply();
+
+                ((UserClient) getApplicationContext()).setRequester(null);
+                ((UserClient) getApplicationContext()).setRequest(null);
+
+                Intent intent = new Intent(RequesterMainActivity.this, EntryPoint.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                break;
+            }
+
+            case R.id.look_at_map: {
+
+                Intent intent = new Intent(RequesterMainActivity.this, RequesterMapActivity.class);
+                intent.putExtra("request", mRequest);
+                startActivity(intent);
+                break;
+            }
+
+            case R.id.submit_request: {
+                Intent intent = new Intent(RequesterMainActivity.this, RequestForm.class);
+                startActivity(intent);
+                break;
+            }
+
+            case R.id.driver_phone: {
+                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mRequest.getVehicle().getPhone_number()));
+                startActivity(intent);
             }
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: called.");
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if (mLocationPermissionGranted) {
-                    getUserDetails();
-                } else {
-                    getLocationPermission();
-                }
-            }
-        }
-
-    }
 
 }
 

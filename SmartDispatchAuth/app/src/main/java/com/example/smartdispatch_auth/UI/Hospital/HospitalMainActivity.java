@@ -2,16 +2,22 @@ package com.example.smartdispatch_auth.UI.Hospital;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,7 +29,10 @@ import com.example.smartdispatch_auth.Models.Hospital;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
 import com.example.smartdispatch_auth.UserClient;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -34,18 +43,23 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
+import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
+import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_INTERNET;
 
 public class HospitalMainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    // todo: add internet check
     private static final String TAG = "HospitalMainActivity";
 
-    // widgets
-    private TextView hospitalName, hospitalContact;
-
     // vars
+    private boolean mLocationPermissionGranted = false;
+    private boolean internetState =false, gpsState = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Hospital mHospital;
+    private AlertDialog internetAlert, gpsAlert;
+    IntentFilter filter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,47 +69,177 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         findViewById(R.id.current_request).setOnClickListener(this);
         findViewById(R.id.sign_out).setOnClickListener(this);
 
-        hospitalName = findViewById(R.id.hospital_name);
-        hospitalContact = findViewById(R.id.hospital_contact);
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(LocationManager.MODE_CHANGED_ACTION);
+        filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
+        this.registerReceiver(new HospitalMainActivity.CheckConnectivity(), filter);
 
     }
 
+
+    public class CheckConnectivity extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+
+            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+            if(isNotConnected){
+                internetAlert = null;
+                buildAlertMessageNoInternet();
+            }else{
+                internetState = true;
+            }
+
+
+            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                gpsState = true;
+            }else{
+                gpsAlert = null;
+                buildAlertMessageNoGps();
+            }
+
+            if(gpsState && internetState)
+                getHospitalDetails();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    private void buildAlertMessageNoGps() {
+        if(gpsAlert != null)
+            return;
+
+        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
+                    }
+                });
+        gpsAlert = builder.create();
+        gpsAlert.show();
+
+    }
+
+    private void buildAlertMessageNoInternet() {
+        if(internetAlert != null)
+            return;
+
+        final android.support.v7.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This application requires internet connection to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                        startActivityForResult(intent, PERMISSIONS_REQUEST_ENABLE_INTERNET);
+                    }
+                });
+        internetAlert = builder.create();
+        internetAlert.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: called.");
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+                if(mLocationPermissionGranted){
+                    gpsState = true;
+                }
+                else{
+                    getLocationPermission();
+                }
+            }
+
+            case PERMISSIONS_REQUEST_ENABLE_INTERNET: {
+                if (resultCode == RESULT_OK) {
+                    internetState = true;
+                }
+            }
+        }
+
+        if(internetState && gpsState)
+            getHospitalDetails();
+        else
+            Log.d(TAG, "onActivityResult: Did not switch on the network. Send broadcast from here");
+
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (isMapsEnabled()) {
-            getHospitalDetails();
-        }
-    }
-
-    /*  GPS Service  */
-
-    private void startLocationService() {
-        if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, LocationService.class);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-
-                HospitalMainActivity.this.startForegroundService(serviceIntent);
-            } else {
-                startService(serviceIntent);
+        if(isServicesOK()){
+            if(mLocationPermissionGranted && internetState && gpsState){
+                getHospitalDetails();
+            }
+            else{
+                getLocationPermission();
             }
         }
     }
 
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.example.smartdispatch_auth.Services.RequesterLocaitonService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
+    public boolean isServicesOK() {
+        Log.d(TAG, "isServicesOK: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(HospitalMainActivity.this);
+
+        if (available == ConnectionResult.SUCCESS) {
+            //everything is fine and the user can make map requests
+            Log.d(TAG, "isServicesOK: Google Play Services is working");
+            return true;
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
+            //an error occured but we can resolve it
+            Log.d(TAG, "isServicesOK: an error occured but we can fix it");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(HospitalMainActivity.this, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         return false;
+    }
+
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                }
+            }
+        }
     }
 
     private void getHospitalDetails() {
@@ -157,46 +301,38 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     public void display() {
 
-        hospitalName.setText(mHospital.getHospital_name());
-        hospitalContact.setText(mHospital.getContactno());
+        Log.d(TAG, "display: name: " + mHospital.getHospital_name());
+        ((TextView)findViewById(R.id.hospital_name)).setText(mHospital.getHospital_name());
+        ((TextView)findViewById(R.id.hospital_contact)).setText(mHospital.getContactno());
 
     }
 
-    public boolean isMapsEnabled() {
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+    /*  GPS Service  */
 
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-            return false;
-        }
-        return true;
-    }
+    private void startLocationService() {
+        if (!isLocationServiceRunning()) {
+            Intent serviceIntent = new Intent(this, LocationService.class);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: called.");
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                getHospitalDetails();
+                HospitalMainActivity.this.startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
             }
         }
-
     }
 
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.example.smartdispatch_auth.Services.RequesterLocaitonService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
     }
+
 
     @Override
     public void onClick(View v) {
@@ -208,6 +344,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
             SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
             editor.remove("type");
+            editor.apply();
 
             ((UserClient)getApplicationContext()).setHospital(null);
             ((UserClient)getApplicationContext()).setRequest(null);
@@ -221,4 +358,5 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         }
 
     }
+
 }
