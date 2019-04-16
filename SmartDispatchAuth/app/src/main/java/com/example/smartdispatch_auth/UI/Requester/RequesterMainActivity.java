@@ -234,6 +234,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         else
             source = Source.DEFAULT;
 
+        checkForRequests();
 
         if (checkMapServices()) {
             if (mLocationPermissionGranted) {
@@ -242,11 +243,10 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                 getLocationPermission();
             }
         }
-
-        checkForRequests();
     }
 
     private void checkForRequests() {
+        Log.d(TAG, "checkForRequests: called");
         
         mRequest = ((UserClient)getApplicationContext()).getRequest();
         if(mRequest != null){
@@ -257,18 +257,22 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
             findViewById(R.id.submit_request).setVisibility(View.GONE);
         }
 
+        Log.d(TAG, "checkForRequests: null");
         final Request[] request = new Request[1];
         FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            Log.d(TAG, "onComplete: task successful");
                             for (QueryDocumentSnapshot document : task.getResult())
-                                if (document.exists())
+                                if (document.exists()) {
                                     request[0] = document.toObject(Request.class);
+                                    Log.d(TAG, "onComplete: "+request[0].toString());
+
                                     if (request[0].getRequester().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                                         mRequest = request[0];
-                                        ((UserClient)getApplicationContext()).setRequest(mRequest);
+                                        ((UserClient) getApplicationContext()).setRequest(mRequest);
 
                                         findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
                                         findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
@@ -276,6 +280,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                                         findViewById(R.id.submit_request).setVisibility(View.GONE);
                                         return;
                                     }
+                                }
                         }
 
                     }
