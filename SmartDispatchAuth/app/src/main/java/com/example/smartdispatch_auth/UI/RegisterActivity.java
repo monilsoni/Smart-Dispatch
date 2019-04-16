@@ -293,8 +293,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     }
                 } else if (authenticator.equals("vehicle")) {
                     if (!isEmpty(age) && !isEmpty(sex) && !isEmpty(aadhar_number) && !isEmpty(vehicleno)) {
-
-                        if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
+                        if (!email.contains("@smartdispatch.gov.in") || !email.contains("v_"))
+                            Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
+                        else if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                             Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
                             Utilities.showDialog(mProgressBar);
                             registerVehicleNewEmail(email, password, aadhar_number, phone_number, name, licenseno, age, vehicleno);
@@ -306,7 +307,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         Toast.makeText(RegisterActivity.this, "You must fill out all the fields", Toast.LENGTH_SHORT).show();
                     }
                 } else if (authenticator.equals("hospital")) {
-                    if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
+                    if (!email.contains("@smartdispatch.gov.in") || !email.contains("h_"))
+                        Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
+                    else if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                         Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
                         Utilities.showDialog(mProgressBar);
                         registerHospitalNewEmail(email, password, name, phone_number);

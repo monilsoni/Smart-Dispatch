@@ -19,7 +19,7 @@ public class Request implements Parcelable {
     private Requester requester;
     private Vehicle vehicle;
     private Hospital hospital;
-    private String typeofemergency;
+    private String typeofemergency, request_id;
     private int scaleofemergency;
     private int vehiclereached;
 
@@ -30,28 +30,32 @@ public class Request implements Parcelable {
         typeofemergency = in.readString();
         scaleofemergency = in.readInt();
         vehiclereached = in.readInt();
+        request_id = in.readString();
     }
 
     public Request() {
     }
 
-    public Request(Requester requester, Vehicle vehicle, Hospital hospital, String typeofemergency, int scaleofemergency, int vehiclereached) {
+    public Request(Requester requester, Vehicle vehicle, Hospital hospital, String typeofemergency, int scaleofemergency, int vehiclereached, String request_id) {
         this.requester = requester;
         this.vehicle = vehicle;
         this.hospital = hospital;
         this.typeofemergency = typeofemergency;
         this.scaleofemergency = scaleofemergency;
         this.vehiclereached = vehiclereached;
+        this.request_id = request_id;
     }
 
     @Override
     public String toString() {
         return "Request{" +
                 "requester=" + requester +
-                ", vehicleLocation=" + vehicle +
-                ", hospital=" + hospital +
-                ", typeofemergency=" + typeofemergency +
-                ", scaleofemergency=" + scaleofemergency +
+                ",\n vehicle=" + vehicle +
+                ",\n hospital=" + hospital +
+                ",\n typeofemergency='" + typeofemergency + '\'' +
+                ",\n request_id='" + request_id + '\'' +
+                ",\n scaleofemergency=" + scaleofemergency +
+                ",\n vehiclereached=" + vehiclereached +
                 '}';
     }
 
@@ -108,6 +112,7 @@ public class Request implements Parcelable {
         dest.writeString(typeofemergency);
         dest.writeInt(scaleofemergency);
         dest.writeInt(vehiclereached);
+        dest.writeString(request_id);
     }
 
     public int getVehiclereached() {
@@ -116,5 +121,13 @@ public class Request implements Parcelable {
 
     public void setVehiclereached(int vehiclereached) {
         this.vehiclereached = vehiclereached;
+    }
+
+    public String getRequest_id() {
+        return request_id;
+    }
+
+    public void setRequest_id(String request_id) {
+        this.request_id = request_id;
     }
 }

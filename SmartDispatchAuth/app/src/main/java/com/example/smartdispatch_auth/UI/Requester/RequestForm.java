@@ -29,6 +29,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -48,18 +49,65 @@ import static com.example.smartdispatch_auth.Constants.MY_PERMISSIONS_REQUEST_SE
 public class RequestForm extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "RequestForm";
-
+    private static Location currloc;
     //Android Widgets
     private CheckBox mChkbox_medical, mChkbox_fire, mChkbox_other;
-    private SeekBar mSeek_severity;
 
     //Variables
-
+    private SeekBar mSeek_severity;
     private int severity;
-    private static Location currloc;
-
     private ProgressDialog progress;
     private Requester requester;
+
+    public static Comparator<Cluster> sortClusters() {
+        Comparator comp = new Comparator<Cluster>() {
+            @Override
+            public int compare(Cluster c1, Cluster c2) {
+                Location l1 = new Location("");
+                Location l2 = new Location("");
+
+                l1.setLatitude(c1.getGeoPoint().getLatitude());
+                l1.setLongitude(c1.getGeoPoint().getLongitude());
+
+                l2.setLatitude(c2.getGeoPoint().getLatitude());
+                l2.setLongitude(c2.getGeoPoint().getLongitude());
+
+                float dist1 = currloc.distanceTo(l1);
+                float dist2 = currloc.distanceTo(l2);
+
+                if (dist1 < dist2)
+                    return 1;
+                else
+                    return 0;
+            }
+        };
+        return comp;
+    }
+
+    public static Comparator<Vehicle> sortVehicles() {
+        Comparator comp = new Comparator<Vehicle>() {
+            @Override
+            public int compare(Vehicle c1, Vehicle c2) {
+                Location l1 = new Location("");
+                Location l2 = new Location("");
+
+                l1.setLatitude(c1.getGeoPoint().getLatitude());
+                l1.setLongitude(c1.getGeoPoint().getLongitude());
+
+                l2.setLatitude(c2.getGeoPoint().getLatitude());
+                l2.setLongitude(c2.getGeoPoint().getLongitude());
+
+                float dist1 = currloc.distanceTo(l1);
+                float dist2 = currloc.distanceTo(l2);
+
+                if (dist1 < dist2)
+                    return 1;
+                else
+                    return 0;
+            }
+        };
+        return comp;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,19 +165,18 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                             clusters.add(c);
                         }
 
-                        Collections.sort(clusters,sortClusters());
+                        Collections.sort(clusters, sortClusters());
 
-                        ArrayList<Vehicle> Available_Vehicles=null;
+                        ArrayList<Vehicle> Available_Vehicles = null;
 
-                        for(Cluster cluster : clusters)
-                        {
+                        for (Cluster cluster : clusters) {
                             Available_Vehicles = new ArrayList<Vehicle>();
 
                             for (Vehicle vehicle : cluster.getVehicles()) {
                                 if (vehicle.getEngage() == 0)
                                     Available_Vehicles.add(vehicle);
                             }
-                            if(Available_Vehicles.size()>0)
+                            if (Available_Vehicles.size() > 0)
                                 break;
 
                         }
@@ -141,9 +188,22 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                             Log.d("Vehicle-count", "no free vehicles");
                         else {
 
-                            Collections.sort(Available_Vehicles,sortVehicles());
+                            Collections.sort(Available_Vehicles, sortVehicles());
 
                             nearestVehicle = Available_Vehicles.get(0);
+
+                            final String[] token = new String[1];
+                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
+                                    .document(nearestVehicle.getUser_id()).get()
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            if (task.isSuccessful() && task.getResult().exists()) {
+                                                token[0] = task.getResult().toObject(Vehicle.class).getToken();
+                                                nearestVehicle.setToken(token[0]);
+                                            }
+                                        }
+                                    });
 
                             FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).get()
                                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -166,7 +226,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                     nearestHospital = h;
                                                 }
                                             }
-
 
                                             String typeofemergency = "";
                                             if (mChkbox_medical.isChecked()) {
@@ -195,20 +254,21 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                     nearestHospital,
                                                     typeofemergency,
                                                     scaleofemergency,
-                                                    0
+                                                    0,
+                                                    requester.getUser_id()
                                             );
 
 
-                                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).add(request)
-                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).document(requester.getUser_id()).set(request)
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
-                                                        public void onSuccess(DocumentReference documentReference) {
+                                                        public void onSuccess(Void aVoid) {
                                                             Log.d(TAG, "onSuccess: Request Stored.");
                                                             progress.dismiss();
 
                                                             Intent intent = new Intent(RequestForm.this, RequesterMainActivity.class);
                                                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                            ((UserClient)getApplicationContext()).setRequest(request);
+                                                            ((UserClient) getApplicationContext()).setRequest(request);
 
                                                             new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifVehicle?id=" +
                                                                     request.getVehicle().getUser_id() +
@@ -237,60 +297,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                     }
                 });
 
-    }
-
-    public static Comparator<Cluster> sortClusters()
-    {
-        Comparator comp = new Comparator<Cluster>(){
-            @Override
-            public int compare(Cluster c1, Cluster c2)
-            {
-                Location l1 = new Location("");
-                Location l2 = new Location("");
-
-                l1.setLatitude(c1.getGeoPoint().getLatitude());
-                l1.setLongitude(c1.getGeoPoint().getLongitude());
-
-                l2.setLatitude(c2.getGeoPoint().getLatitude());
-                l2.setLongitude(c2.getGeoPoint().getLongitude());
-
-                float dist1 = currloc.distanceTo(l1);
-                float dist2 = currloc.distanceTo(l2);
-
-                if(dist1<dist2)
-                    return 1;
-                else
-                    return 0;
-            }
-        };
-        return comp;
-    }
-
-    public static Comparator<Vehicle> sortVehicles()
-    {
-        Comparator comp = new Comparator<Vehicle>(){
-            @Override
-            public int compare(Vehicle c1, Vehicle c2)
-            {
-                Location l1 = new Location("");
-                Location l2 = new Location("");
-
-                l1.setLatitude(c1.getGeoPoint().getLatitude());
-                l1.setLongitude(c1.getGeoPoint().getLongitude());
-
-                l2.setLatitude(c2.getGeoPoint().getLatitude());
-                l2.setLongitude(c2.getGeoPoint().getLongitude());
-
-                float dist1 = currloc.distanceTo(l1);
-                float dist2 = currloc.distanceTo(l2);
-
-                if(dist1<dist2)
-                    return 1;
-                else
-                    return 0;
-            }
-        };
-        return comp;
     }
 
     public void onclickSendSmS() {

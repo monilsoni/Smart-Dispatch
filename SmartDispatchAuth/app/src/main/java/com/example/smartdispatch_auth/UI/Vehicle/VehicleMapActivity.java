@@ -1,5 +1,7 @@
 package com.example.smartdispatch_auth.UI.Vehicle;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
@@ -23,6 +25,7 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.RequestClusterManagerRenderer;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,6 +51,8 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
+
+import org.acra.util.ToastSender;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,7 +82,7 @@ public class VehicleMapActivity extends AppCompatActivity implements
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private boolean vehicle_alloted = true;
+    private boolean vehicle_reached = false;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -94,9 +99,14 @@ public class VehicleMapActivity extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-        findViewById(R.id.btn_reset_map).setOnClickListener(this);
-        findViewById(R.id.btn_go).setOnClickListener(this);
+        findViewById(R.id.btn_reached).setVisibility(View.VISIBLE);
 
+        findViewById(R.id.btn_reset_map).setOnClickListener(this);
+        findViewById(R.id.btn_reached).setOnClickListener(this);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mEndedRequest, new IntentFilter("v_request_ended")
+        );
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -115,6 +125,18 @@ public class VehicleMapActivity extends AppCompatActivity implements
         initGoogleMap(savedInstanceState);
 
     }
+
+    private BroadcastReceiver mEndedRequest = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(VehicleMapActivity.this, "Request Ended", Toast.LENGTH_SHORT).show();
+
+            ((UserClient)getApplicationContext()).setRequest(null);
+            Intent go_back_intent = new Intent(VehicleMapActivity.this, VehicleMainActivity.class);
+            go_back_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(go_back_intent);
+        }
+    };
 
     /* Helper methods */
 
@@ -430,12 +452,13 @@ public class VehicleMapActivity extends AppCompatActivity implements
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
-        if(vehicle_alloted)
-            calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                mRequest.getRequester().getGeoPoint());
-        else
+        if(vehicle_reached)
             calculateDirections(mRequest.getRequester().getGeoPoint(),
                     mRequest.getHospital().getGeoPoint());
+        else
+            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+                    mRequest.getRequester().getGeoPoint());
+
 
     }
 
@@ -509,9 +532,15 @@ public class VehicleMapActivity extends AppCompatActivity implements
                 break;
             }
 
-            case R.id.btn_go:{
+            case R.id.btn_reached:{
                 calculateDirections(mRequest.getRequester().getGeoPoint(),
                             mRequest.getHospital().getGeoPoint());
+
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_request))
+                        .document(mRequest.getRequest_id()).update(
+                        "vehiclereached",
+                        1
+                );
 
                 new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequesterReached?id="+
                         mRequest.getRequester().getUser_id()+
@@ -523,7 +552,8 @@ public class VehicleMapActivity extends AppCompatActivity implements
                         "&name="+mRequest.getVehicle().getDriver_name()+
                         "&no="+mRequest.getVehicle().getVehicle_number());
 
-                vehicle_alloted = false;
+                findViewById(R.id.btn_reached).setVisibility(View.GONE);
+                vehicle_reached = true;
             }
         }
     }

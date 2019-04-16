@@ -24,6 +24,8 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.User;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMapActivity;
 import com.example.smartdispatch_auth.Utils.RequestClusterManagerRenderer;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -72,7 +74,7 @@ public class RequesterMapActivity extends AppCompatActivity implements
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private boolean vehicle_alloted = false, vehicle_reached = false;
+    private boolean vehicle_reached = false;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -107,19 +109,23 @@ public class RequesterMapActivity extends AppCompatActivity implements
 
         initGoogleMap(savedInstanceState);
 
-        /*LocalBroadcastManager.getInstance(this).registerReceiver(
-                vehicleAlloted, new IntentFilter("vehicle_alloted"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vehicle_reached")
+        );
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                vehicleReached, new IntentFilter("vehicle_reached"));*/
+                mEndedRequest, new IntentFilter("r_request_ended")
+        );
     }
 
-    /*
-    private BroadcastReceiver vehicleAlloted = new BroadcastReceiver() {
+    private BroadcastReceiver mEndedRequest = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            vehicle_alloted = true;
+            Toast.makeText(RequesterMapActivity.this, "Request Ended", Toast.LENGTH_SHORT).show();
 
+            Intent go_back_intent = new Intent(RequesterMapActivity.this, RequesterMainActivity.class);
+            go_back_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(go_back_intent);
         }
     };
 
@@ -127,11 +133,10 @@ public class RequesterMapActivity extends AppCompatActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             vehicle_reached = true;
-            vehicle_alloted = false;
-
+            setCameraView();
         }
 
-    };*/
+    };
 
     /* Helper methods */
 
@@ -463,10 +468,10 @@ public class RequesterMapActivity extends AppCompatActivity implements
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
-        calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                    mRequest.getRequester().getGeoPoint());
-
         if(vehicle_reached)
+            calculateDirections(mRequest.getRequester().getGeoPoint(),
+                    mRequest.getHospital().getGeoPoint());
+        else
             calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
 
@@ -491,6 +496,9 @@ public class RequesterMapActivity extends AppCompatActivity implements
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        if(mRequest.getVehiclereached() == 1)
+            vehicle_reached = true;
+
         startUserLocationsRunnable();
 
     }

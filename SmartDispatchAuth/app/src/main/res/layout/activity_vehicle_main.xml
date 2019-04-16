@@ -34,7 +34,8 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/relativeLayout">
+        android:layout_below="@id/relativeLayout"
+        android:layout_marginTop="-1dp">
 
         <RelativeLayout
             android:id="@+id/vehicleLayout"
@@ -42,174 +43,392 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="80dp">
 
-            <RelativeLayout
-                android:id="@+id/vehicleHeading"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:background="@color/colorPrimaryDark"
-                android:translationZ="2dp">
-
-                <View
-                    android:id="@+id/divider"
-                    android:layout_width="7dp"
-                    android:layout_height="7dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginTop="20dp"
-                    android:background="#FFF" />
-
-                <TextView
-                    android:id="@+id/textVehicle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="13dp"
-                    android:layout_weight="1"
-                    android:fontFamily="sans-serif"
-                    android:text="Vehicle Details"
-                    android:textColor="#FFF"
-                    android:textSize="14dp"
-                    android:layout_toRightOf="@id/divider"/>
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/detailsLayout"
+            <android.support.v7.widget.CardView
+                android:id="@+id/vehicle_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:background="#FEFEFE"
-                android:orientation="vertical"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:translationZ="2dp"
-                android:layout_below="@id/vehicleHeading">
-
-                <RelativeLayout
-                    android:id="@+id/nameLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:orientation="horizontal"
-                    android:padding="15dp">
-
-                    <TextView
-                        android:id="@+id/drivername"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Driver Name : "
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:text="RaviKumar Tiwari"
-                        android:textSize="15dp"
-                        android:layout_toRightOf="@id/drivername"
-                        android:textColor="@color/ColorSecondary"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/contactLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:orientation="horizontal"
-                    android:padding="15dp"
-                    android:layout_below="@id/nameLayout">
-
-                    <TextView
-                        android:id="@+id/contactno"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Contact No. : "
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:text="5863523652"
-                        android:textSize="15dp"
-                        android:layout_toRightOf="@id/contactno"
-                        android:textColor="@color/ColorSecondary"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/vehicleNoLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:orientation="horizontal"
-                    android:padding="15dp"
-                    android:layout_below="@id/contactLayout">
-
-                    <TextView
-                        android:id="@+id/vehicleNo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Vehicle Number : "
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:text="GJ5 AJ 5465"
-                        android:textSize="15dp"
-                        android:layout_toRightOf="@id/vehicleNo"
-                        android:textColor="@color/ColorSecondary"/>
-                </RelativeLayout>
+                android:layout_marginHorizontal="20dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:orientation="horizontal"
-                    android:padding="15dp"
-                    android:layout_below="@id/vehicleNoLayout">
+                    android:layout_height="wrap_content">
+
+                    <RelativeLayout
+                        android:id="@+id/vehicleHeading"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@color/colorPrimaryDark"
+                        android:translationZ="2dp">
+
+                        <View
+                            android:id="@+id/divider"
+                            android:layout_width="7dp"
+                            android:layout_height="7dp"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginTop="20dp"
+                            android:background="#FFF" />
+
+                        <TextView
+                            android:id="@+id/textVehicle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="15dp"
+                            android:layout_marginTop="13dp"
+                            android:layout_toRightOf="@id/divider"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif"
+                            android:text="Vehicle Details"
+                            android:textColor="#FFF"
+                            android:textSize="14dp" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/detailsLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/vehicleHeading"
+                        android:layout_marginBottom="8dp"
+                        android:background="#FEFEFE"
+                        android:orientation="vertical"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:translationZ="2dp">
+
+                        <RelativeLayout
+                            android:id="@+id/nameLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="5dp"
+                            android:orientation="horizontal"
+                            android:padding="15dp">
+
+                            <TextView
+                                android:id="@+id/drivernameTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Driver Name : "
+                                android:textColor="@color/colorPrimaryDark"
+                                android:textSize="16dp" />
+
+                            <TextView
+                                android:id="@+id/driver_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_toRightOf="@id/drivernameTextView"
+                                android:paddingHorizontal="10dp"
+                                android:text="RaviKumar Tiwari"
+                                android:textColor="@color/ColorSecondary"
+                                android:textSize="15dp" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:id="@+id/contactLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/nameLayout"
+                            android:layout_marginVertical="5dp"
+                            android:orientation="horizontal"
+                            android:padding="15dp">
+
+                            <TextView
+                                android:id="@+id/contactnoTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Contact No. : "
+                                android:textColor="@color/colorPrimaryDark"
+                                android:textSize="16dp" />
+
+                            <TextView
+                                android:id="@+id/contact_no"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_toRightOf="@id/contactnoTextView"
+                                android:paddingHorizontal="10dp"
+                                android:text="5863523652"
+                                android:textColor="@color/ColorSecondary"
+                                android:textSize="15dp" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:id="@+id/vehicleNoLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/contactLayout"
+                            android:layout_marginVertical="5dp"
+                            android:orientation="horizontal"
+                            android:padding="15dp">
+
+                            <TextView
+                                android:id="@+id/vehiclenoTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Vehicle Number : "
+                                android:textColor="@color/colorPrimaryDark"
+                                android:textSize="16dp" />
+
+                            <TextView
+                                android:id="@+id/vehicle_no"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_toRightOf="@id/vehiclenoTextView"
+                                android:paddingHorizontal="10dp"
+                                android:text="GJ5 AJ 5465"
+                                android:textColor="@color/ColorSecondary"
+                                android:textSize="15dp" />
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/vehicleNoLayout"
+                            android:layout_marginVertical="5dp"
+                            android:orientation="horizontal"
+                            android:padding="15dp">
+
+                            <TextView
+                                android:id="@+id/licenceNoTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Licence Number : "
+                                android:textColor="@color/colorPrimaryDark"
+                                android:textSize="16dp" />
+
+                            <TextView
+                                android:id="@+id/license_number"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_toRightOf="@id/licenceNoTextView"
+                                android:paddingHorizontal="10dp"
+                                android:text="123456"
+                                android:textColor="@color/ColorSecondary"
+                                android:textSize="15dp" />
+                        </RelativeLayout>
+
+                    </RelativeLayout>
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/user_card"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/vehicle_card"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="30dp">
+
+                <RelativeLayout
+                    android:id="@+id/user_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
                     <TextView
-                        android:id="@+id/licenceNo"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/user_header"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Licence Number : "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:background="@color/colorPrimaryDark"
+                        android:padding="15dp"
+                        android:text="User Details"
+                        android:textAlignment="center"
+                        android:textColor="#FFF"
                         android:textSize="16dp" />
 
-                    <TextView
+                    <RelativeLayout
+                        android:id="@+id/user_name_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/user_header"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/user_name_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="10dp"
+                            android:text="Name : "
+                            android:textAlignment="center"
+                            android:textColor="@color/ColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/user_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toRightOf="@id/user_name_text"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="10dp"
+                            android:text=""
+                            android:textAlignment="center"
+                            android:textColor="@color/ColorSecondary" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/severity_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/user_name_layout"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/severity_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerHorizontal="true"
+                            android:gravity="center_horizontal"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="20dp"
+                            android:text="Severity : "
+                            android:textColor="@color/ColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/severity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerHorizontal="true"
+                            android:layout_toRightOf="@id/severity_text"
+                            android:gravity="center_horizontal"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="20dp"
+                            android:text=""
+                            android:textColor="@color/ColorSecondary" />
+                    </RelativeLayout>
+
+                    <View
+                        android:id="@+id/divider1"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_below="@id/severity_layout"
+                        android:background="@color/colorPrimaryDark" />
+
+
+                    <Button
+                        android:id="@+id/user_phone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:text="123456"
-                        android:textSize="15dp"
-                        android:layout_toRightOf="@id/licenceNo"
-                        android:textColor="@color/ColorSecondary"/>
-                </RelativeLayout>
+                        android:layout_below="@id/divider2"
+                        android:layout_centerHorizontal="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:drawableLeft="@drawable/ic_local_phone_black_24dp"
+                        android:drawablePadding="10dp"
+                        android:gravity="center_horizontal"
+                        android:paddingVertical="15dp"
+                        android:text="Call"
+                        android:textColor="@color/ColorSecondary"
+                        android:textSize="17dp" />
 
-            </RelativeLayout>
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/hospital_card"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/user_card"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="30dp">
+
+                <RelativeLayout
+                    android:id="@+id/hospital_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/hospital_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimaryDark"
+                        android:padding="15dp"
+                        android:text="Hospital Details"
+                        android:textAlignment="center"
+                        android:textColor="#FFF"
+                        android:textSize="16dp" />
+
+                    <RelativeLayout
+                        android:id="@+id/hospital_name_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/hospital_header"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/hospital_name_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="10dp"
+                            android:text="Hospial Name : "
+                            android:textAlignment="center"
+                            android:textColor="@color/ColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/hospital_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toRightOf="@id/hospital_name_text"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="10dp"
+                            android:text=""
+                            android:textAlignment="center"
+                            android:textColor="@color/ColorSecondary" />
+                    </RelativeLayout>
+
+
+                    <View
+                        android:id="@+id/divider_hospital"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_below="@id/hospital_name_layout"
+                        android:background="@color/colorPrimaryDark" />
+
+
+                    <Button
+                        android:id="@+id/hospital_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/divider_hospital"
+                        android:layout_centerHorizontal="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:drawableLeft="@drawable/ic_local_phone_black_24dp"
+                        android:drawablePadding="10dp"
+                        android:gravity="center_horizontal"
+                        android:paddingVertical="15dp"
+                        android:text="Call"
+                        android:textColor="@color/ColorSecondary"
+                        android:textSize="17dp" />
+
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
+
 
             <Button
                 android:id="@+id/sign_out"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/hospital_card"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-                android:text="Sign Out"
-                android:layout_below="@id/detailsLayout"
+                android:layout_marginVertical="20dp"
                 android:background="@drawable/textviewborder"
-                android:textColor="@color/colorPrimaryDark"
                 android:fontFamily="sans-serif"
-                android:layout_marginVertical="20dp" />
+                android:text="Sign Out"
+                android:textColor="@color/colorPrimaryDark" />
 
         </RelativeLayout>
 
-
-
-
     </ScrollView>
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/look_at_map"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
+        android:src = "@drawable/ic_map"/>
 
 </RelativeLayout>

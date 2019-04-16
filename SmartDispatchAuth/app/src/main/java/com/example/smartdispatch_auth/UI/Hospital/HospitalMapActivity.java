@@ -64,7 +64,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
     // widgets
     private MapView mMapView;
-    private boolean vehicle_alloted = true, vehicle_reached = false;
+    private boolean vehicle_reached = false;
 
     // vars
     private ArrayList<User> mUserLocations = new ArrayList<>();
@@ -106,21 +106,18 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
         initGoogleMap(savedInstanceState);
 
-        // todo: decide where to put the broadcast receiver
-        /*LocalBroadcastManager.getInstance(this).registerReceiver(
-                vehicleReached, new IntentFilter("vReach"));*/
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vReach"));
     }
 
-    /*private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             vehicle_reached = true;
-            vehicle_alloted = false;
-            calculateDirections(mRequest.getRequester().getGeoPoint(),
-                    mRequest.getHospital().getGeoPoint());
+            setCameraView();
         }
 
-    };*/
+    };
 
 
     /* Helper methods */
@@ -454,10 +451,10 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
-        calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                    mRequest.getRequester().getGeoPoint());
-
-        if (vehicle_reached)
+        if(vehicle_reached)
+            calculateDirections(mRequest.getRequester().getGeoPoint(),
+                    mRequest.getHospital().getGeoPoint());
+        else
             calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
 
@@ -482,6 +479,9 @@ public class HospitalMapActivity extends AppCompatActivity implements
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        if(mRequest.getVehiclereached() == 1)
+            vehicle_reached = true;
+
         startUserLocationsRunnable();
     }
 

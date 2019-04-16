@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
@@ -11,9 +12,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 
+import com.example.smartdispatch_auth.Models.Hospital;
+import com.example.smartdispatch_auth.Models.Requester;
+import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UI.LoginActivity;
+import com.example.smartdispatch_auth.UserClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -25,10 +30,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import static android.support.constraint.Constraints.TAG;
-
 public class RequestNotification extends FirebaseMessagingService {
 
+    private static final String TAG = "RequestNotification";
     private String authenticator = "";
 
     @Override
@@ -39,10 +43,10 @@ public class RequestNotification extends FirebaseMessagingService {
     }
 
     private void showNotification(String title, String body, Map<String, String> hashMap) {
-        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String NOTIFICATION_CHANNEL_ID = "my_channel_02";
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Notification",
                     NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.setDescription("TEST");
@@ -58,12 +62,13 @@ public class RequestNotification extends FirebaseMessagingService {
                 .setContentText(body)
                 .setContentInfo("Info");
 
-        getAuthenicator();
+        SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
+        authenticator = prefs.getString("type", null);
 
 
         switch (hashMap.get("user")) {
             case "hospital":
-                if (authenticator.equals("hospital")){
+                if (authenticator.equals("hospital")) {
                     notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
 
                     if (hashMap.get("type").equals("connected")) {
@@ -78,12 +83,16 @@ public class RequestNotification extends FirebaseMessagingService {
 
                 break;
             case "requester":
-                if (authenticator.equals("requester")){
+                if (authenticator.equals("requester")) {
                     notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
 
                     if (hashMap.get("type").equals("connected")) {
                         Intent i = new Intent("vehicle_alloted");
                         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    } else if (hashMap.get("type").equals("ended")) {
+                        Intent i = new Intent("r_request_ended");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                        Log.d(TAG, "showNotification: requester ended");
                     } else {
                         Intent i = new Intent("vehicle_reached");
                         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
@@ -93,8 +102,18 @@ public class RequestNotification extends FirebaseMessagingService {
 
                 break;
             case "vehicle":
-                if (authenticator.equals("vehicle")){
+                if (authenticator.equals("vehicle")) {
                     notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
+
+                    if (hashMap.get("type").equals("connected")) {
+                        Intent i = new Intent("v_vehicle_alloted");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    } else {
+                        Intent i = new Intent("v_request_ended");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                        Log.d(TAG, "showNotification: vehicle ended");
+                    }
+
 
                     Intent i = new Intent("get");
                     LocalBroadcastManager.getInstance(this).sendBroadcast(i);
@@ -112,40 +131,23 @@ public class RequestNotification extends FirebaseMessagingService {
     @Override
     public void onNewToken(String s) {
 
-        getAuthenicator();
+        SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
+        authenticator = prefs.getString("type", null);
 
         Map<String, Object> token = new HashMap<>();
         token.put("token", s);
-        if(FirebaseAuth.getInstance().getCurrentUser() != null){
-            if(authenticator.equals("hospital")){
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            if (authenticator.equals("hospital")) {
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
-            }else if(authenticator.equals("vehicle")){
+            } else if (authenticator.equals("vehicle")) {
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
-            }else{
+            } else {
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
             }
         }
     }
 
-    private void getAuthenicator() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user != null){
-            String email = user.getEmail();
-            if(email == null)
-                return;
-
-            if(email.contains("@smartdispatch.gov.in")){
-                if(email.contains("v_"))
-                    authenticator = "vehicle";
-                else
-                    authenticator = "hospital";
-            }else{
-                authenticator = "requester";
-            }
-
-        }
-    }
 }

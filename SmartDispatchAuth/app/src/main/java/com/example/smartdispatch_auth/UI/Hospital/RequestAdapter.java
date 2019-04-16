@@ -18,6 +18,7 @@ import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.RequestDisp;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
+import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,22 +27,22 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
-import static android.support.constraint.Constraints.TAG;
 
 public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestViewHolder> {
 
-    public Context getContext() {
-        return context;
-    }
+    private static final String TAG = "RequestAdapter";
 
-    private Context context ;
+    private Context context;
     private List<RequestDisp> requestList;
     private List<Request> requests;
-
     public RequestAdapter(Context context, List<RequestDisp> requestList, List<Request> requests) {
         this.context = context;
         this.requestList = requestList;
         this.requests = requests;
+    }
+
+    public Context getContext() {
+        return context;
     }
 
     @NonNull
@@ -79,7 +80,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
         final int k = i;
 
 
-
         requestViewHolder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +87,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                 boolean internet;
 
                 ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-                internet =  cm.getActiveNetworkInfo() != null;
+                internet = cm.getActiveNetworkInfo() != null;
 
                 if (internet) {
 
@@ -101,10 +101,20 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                         for (QueryDocumentSnapshot document : task.getResult()) {
                                             Request request = document.toObject(Request.class);
 
-                                            // todo: tackle the index out of bounds exception here
-                                            if(request.getRequester().getUser_id().equals(requests.get(k).getRequester().getUser_id())){
+                                            if (request.getRequester().getUser_id().equals(requests.get(k).getRequester().getUser_id())) {
                                                 document.getReference().delete();
                                                 FirebaseFirestore.getInstance().collection("Request History").add(request);
+
+                                                String requester_id = request.getRequester().getUser_id();
+                                                String vehicle_id = request.getVehicle().getUser_id();
+
+                                                Log.d(TAG, "onComplete: " + requester_id.toString() + "\n" + vehicle_id.toString());
+
+                                                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifVehicleRequestEnd?id=" +
+                                                        vehicle_id);
+                                                new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequesterRequestEnd?id=" +
+                                                        requester_id);
+
 
                                                 Intent i = new Intent("remove");
                                                 i.putExtra("index", k);
@@ -117,8 +127,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                     }
                                 }
                             });
-                }
-                else{
+                } else {
                     Toast.makeText(getContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
                 }
             }

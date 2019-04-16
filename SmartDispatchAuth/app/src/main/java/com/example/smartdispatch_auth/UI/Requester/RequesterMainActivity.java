@@ -5,9 +5,11 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -17,6 +19,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -28,6 +31,7 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
+import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -48,10 +52,6 @@ import com.google.firebase.firestore.Source;
 import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-
-// todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
-
-// todo when requester has an active request disable request form button and display the active request
 
 public class RequesterMainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -88,7 +88,36 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         progress = new ProgressDialog(this);
         progress.setMessage("Loading your data");
         progress.setCancelable(false);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vehicle_reached")
+        );
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mEndedRequest, new IntentFilter("r_request_ended")
+        );
     }
+
+    private BroadcastReceiver mEndedRequest = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
+            findViewById(R.id.look_at_map).setVisibility(View.GONE);
+            ((UserClient) getApplicationContext()).setRequest(null);
+
+            findViewById(R.id.submit_request).setVisibility(View.VISIBLE);
+        }
+    };
+
+    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mRequest = ((UserClient)getApplicationContext()).getRequest();
+            mRequest.setVehiclereached(1);
+            ((UserClient)getApplicationContext()).setRequest(mRequest);
+        }
+
+    };
 
     @Override
     protected void onResume() {
@@ -312,7 +341,8 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     }
 
     public void displayVehicle() {
-        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+        Log.d(TAG, "displayVehicle: ");
+        findViewById(R.id.vehicle_card).setVisibility(View.VISIBLE);
         findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
 
         findViewById(R.id.submit_request).setVisibility(View.GONE);

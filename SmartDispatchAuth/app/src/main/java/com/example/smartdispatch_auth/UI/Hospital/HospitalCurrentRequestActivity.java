@@ -1,10 +1,13 @@
 package com.example.smartdispatch_auth.UI.Hospital;
 
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +15,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewDebug;
 import android.widget.TextView;
 
 import com.example.smartdispatch_auth.Models.Request;
@@ -48,20 +52,27 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
     private BroadcastReceiver removeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int k = intent.getIntExtra("index", 0);
-            requestList.remove(k);
-            requests.remove(k);
-            adapter.notifyDataSetChanged();
-            if (requestList.size() == 0) {
+            int k = intent.getIntExtra("index", -1);
+            Log.i(TAG, Integer.toString(k));
+            if(requestList.size() != 0){
+                requestList.remove(k);
+                requests.remove(k);
+                adapter.notifyDataSetChanged();
+            }
 
+            if (requestList.size() == 0) {
                 emptyListMessage.setVisibility(View.VISIBLE);
             }
         }
     };
+
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateUI();
+            SharedPreferences prefs = getSharedPreferences("activity", MODE_PRIVATE);
+            if(prefs.getString("name", null).equals("hospital_current")){
+                updateUI();
+            }
         }
 
     };
@@ -72,6 +83,8 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_hospital_current_request);
         recyclerView = (android.support.v7.widget.RecyclerView) findViewById(R.id.recyclerView);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("vReach"));
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("send"));
         LocalBroadcastManager.getInstance(this).registerReceiver(
@@ -89,6 +102,10 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         emptyListMessage.setVisibility(View.INVISIBLE);
+        SharedPreferences.Editor editor = getSharedPreferences("activity", MODE_PRIVATE).edit();
+        editor.putString("name", "hospital_current");
+        editor.apply();
+
         updateUI();
     }
 
@@ -109,7 +126,8 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
         requestList = new ArrayList<>();
         requests = new ArrayList<>();
 
-        FirebaseFirestore.getInstance().collection("Requests").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 recurrentRead++;

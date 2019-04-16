@@ -24,6 +24,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Request;
@@ -31,6 +32,8 @@ import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
+import com.example.smartdispatch_auth.UI.Requester.RequesterMainActivity;
+import com.example.smartdispatch_auth.UI.Requester.RequesterMapActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -79,6 +82,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         findViewById(R.id.sign_out).setOnClickListener(this);
+        findViewById(R.id.look_at_map).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
         progress.setMessage("Loading your data");
@@ -106,6 +110,9 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                                     Request request = document.toObject(Request.class);
                                     if (request.getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                                         mRequest = request;
+                                        ((UserClient)getApplicationContext()).setRequest(request);
+
+                                        displayRequestDetails();
                                         Toast.makeText(VehicleMainActivity.this, "Got the request!", Toast.LENGTH_SHORT).show();
 
                                         new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequester?id="+
@@ -232,6 +239,51 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                 getLocationPermission();
             }
         }
+
+        checkForRequests();
+    }
+
+    private void checkForRequests() {
+        Log.d(TAG, "checkForRequests: called");
+
+        mRequest = ((UserClient)getApplicationContext()).getRequest();
+        if(mRequest != null){
+            displayRequestDetails();
+            Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
+            mapIntent.putExtra("request", mRequest);
+            startActivity(mapIntent);
+        }
+
+
+        final Request[] request = new Request[1];
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "onComplete: task successful");
+                            for (QueryDocumentSnapshot document : task.getResult())
+                                if (document.exists()) {
+                                    request[0] = document.toObject(Request.class);
+                                    Log.d(TAG, "onComplete: "+request[0].toString());
+
+                                    if (request[0].getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                        mRequest = request[0];
+
+                                        displayRequestDetails();
+                                        ((UserClient) getApplicationContext()).setRequest(mRequest);
+
+                                        Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
+                                        mapIntent.putExtra("request", mRequest);
+                                        startActivity(mapIntent);
+                                        return;
+                                    }
+                                }
+                        }
+
+                    }
+                });
+
     }
 
     public boolean isServicesOK() {
@@ -354,6 +406,22 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
     public void display() {
 
+        ((TextView)findViewById(R.id.driver_name)).setText(mVehicle.getDriver_name());
+        ((TextView)findViewById(R.id.contact_no)).setText(mVehicle.getPhone_number());
+        ((TextView)findViewById(R.id.vehicle_no)).setText(mVehicle.getVehicle_number());
+        ((TextView)findViewById(R.id.license_number)).setText(mVehicle.getLicense_number());
+
+    }
+
+    public void displayRequestDetails(){
+        findViewById(R.id.user_card).setVisibility(View.VISIBLE);
+        findViewById(R.id.hospital_card).setVisibility(View.VISIBLE);
+        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+
+        ((TextView)findViewById(R.id.user_name)).setText(mRequest.getRequester().getName());
+        ((TextView)findViewById(R.id.severity)).setText(Integer.toString(mRequest.getScaleofemergency()));
+
+        ((TextView)findViewById(R.id.hospital_name)).setText(mRequest.getHospital().getHospital_name());
     }
 
     private void startLocationService() {
@@ -398,6 +466,13 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
+                break;
+            }
+
+            case R.id.look_at_map:{
+                Intent intent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
+                intent.putExtra("request", mRequest);
+                startActivity(intent);
                 break;
             }
         }

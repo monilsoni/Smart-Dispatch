@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth.UI.Hospital;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +18,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -61,6 +63,8 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     private AlertDialog internetAlert, gpsAlert;
     IntentFilter filter;
 
+    ProgressDialog progress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +74,11 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         findViewById(R.id.sign_out).setOnClickListener(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        progress = new ProgressDialog(this);
+        progress.setMessage("Loading your data");
+        progress.setCancelable(false);
+
 
         filter = new IntentFilter();
         filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
@@ -178,6 +187,10 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     @Override
     protected void onResume() {
         super.onResume();
+        SharedPreferences.Editor editor = getSharedPreferences("activity", MODE_PRIVATE).edit();
+        editor.putString("name", "hospital_main");
+        editor.apply();
+
         if(isServicesOK()){
             if(mLocationPermissionGranted && internetState && gpsState){
                 getHospitalDetails();
@@ -244,6 +257,8 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     private void getHospitalDetails() {
 
+        progress.show();
+
         if (mHospital == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
             mHospital = new Hospital();
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals))
@@ -304,6 +319,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         Log.d(TAG, "display: name: " + mHospital.getHospital_name());
         ((TextView)findViewById(R.id.hospital_name)).setText(mHospital.getHospital_name());
         ((TextView)findViewById(R.id.hospital_contact)).setText(mHospital.getContactno());
+        progress.dismiss();
 
     }
 
