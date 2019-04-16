@@ -1,16 +1,19 @@
 package com.example.smartdispatch_auth.Services;
 
-import android.Manifest;
 import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.app.Service;
+
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -22,6 +25,9 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.example.smartdispatch_auth.Models.Hospital;
+import com.example.smartdispatch_auth.Models.Requester;
+import com.example.smartdispatch_auth.Models.User;
+import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,16 +38,18 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
-public class HospitalLocationService extends Service {
-    private static final String TAG = "HospLocationService";
+public class LocationService extends Service {
 
-    private FusedLocationProviderClient mFusedLocationClient;
+    private static final String TAG = "ReqLocationService";
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
     private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
+    private FusedLocationProviderClient mFusedLocationClient;
+    private String authenticator;
 
     @Nullable
     @Override
@@ -75,23 +83,8 @@ public class HospitalLocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand: called.");
         getLocation();
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        Intent restartServiceTask = new Intent(getApplicationContext(),this.getClass());
-        restartServiceTask.setPackage(getPackageName());
-        PendingIntent restartPendingIntent = PendingIntent.getService(getApplicationContext(), 1,restartServiceTask, PendingIntent.FLAG_ONE_SHOT);
-        AlarmManager myAlarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-        myAlarmService.set(
-                AlarmManager.ELAPSED_REALTIME,
-                SystemClock.elapsedRealtime() + 1000,
-                restartPendingIntent);
-
-        super.onTaskRemoved(rootIntent);
-    }
-
 
     private void getLocation() {
 
@@ -111,46 +104,85 @@ public class HospitalLocationService extends Service {
             return;
         }
         Log.d(TAG, "getLocation: getting location information.");
+
         mFusedLocationClient.requestLocationUpdates(mLocationRequestHighAccuracy, new LocationCallback() {
-                    @Override
-                    public void onLocationResult(LocationResult locationResult) {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
 
-                        Log.d(TAG, "onLocationResult: got location result.");
+                Log.d(TAG, "onLocationResult: got location result.");
 
-                        Location location = locationResult.getLastLocation();
+                Location location = locationResult.getLastLocation();
 
-                        if (location != null) {
+                if (location != null) {
+                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
 
+                    SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
+                    authenticator = prefs.getString("type", null);
+                    if (authenticator != null) {
+                        if(authenticator.equals("requester")){
+                            Requester requester = ((UserClient)(getApplicationContext())).getRequester();
+                            if(requester != null){
+                                requester.setGeoPoint(geoPoint);
+                                saveUserLocation(requester);
+                            }
+                        }else if(authenticator.equals("vehicle")){
+                            Vehicle vehicle = ((UserClient)(getApplicationContext())).getVehicle();
+                            if(vehicle != null){
+                                vehicle.setGeoPoint(geoPoint);
+                                saveUserLocation(vehicle);
+                            }
+                        }else{
                             Hospital hospital = ((UserClient)(getApplicationContext())).getHospital();
-                            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            hospital.setGeoPoint(geoPoint);
-                            saveUserLocation(hospital);
+                            if(hospital != null){
+                                hospital.setGeoPoint(geoPoint);
+                                saveUserLocation(hospital);
+                            }
                         }
+                            
                     }
-                },
-                Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
+
+                    
+                }
+            }
+        }, Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-    private void saveUserLocation(final Hospital hospital){
+    private void saveUserLocation(final User user){
 
         try{
             if(FirebaseAuth.getInstance().getCurrentUser() == null)
                 return;
 
-            DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_hospitals))
-                    .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            DocumentReference locationRef = null;
 
-            locationRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {
+            if(authenticator.equals("requester")){
+                locationRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_users))
+                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+            }else if(authenticator.equals("vehicle")){
+                locationRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_vehicles))
+                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+            }else{
+                locationRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_hospitals))
+                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            }
+
+            locationRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
                         Log.d(TAG, "onComplete: \ninserted user location into database." +
-                                "\n latitude: " + hospital.getGeoPoint().getLatitude() +
-                                "\n longitude: " + hospital.getGeoPoint().getLongitude());
+                                "\n latitude: " + user.getGeoPoint().getLatitude() +
+                                "\n longitude: " + user.getGeoPoint().getLongitude());
                     }
                 }
             });
+
+
         }catch (NullPointerException e){
             Log.e(TAG, "saveUserLocation: User instance is null, stopping location service.");
             Log.e(TAG, "saveUserLocation: NullPointerException: "  + e.getMessage() );
@@ -158,4 +190,5 @@ public class HospitalLocationService extends Service {
         }
 
     }
+
 }

@@ -100,6 +100,7 @@
 
                 <RelativeLayout
                     android:id="@+id/vehicle_layout"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -175,6 +176,7 @@
                 android:visibility="invisible" />
 
             <Button
+                android:visibility="gone"
                 android:id="@+id/look_at_map"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

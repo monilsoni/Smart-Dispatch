@@ -6,11 +6,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,9 +20,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.Models.Hospital;
-import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Services.HospitalLocationService;
+import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UserClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,9 +31,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
 
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
@@ -79,7 +76,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, HospitalLocationService.class);
+            Intent serviceIntent = new Intent(this, LocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 HospitalMainActivity.this.startForegroundService(serviceIntent);
@@ -92,7 +89,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.example.smartdispatch_auth.Services.HospitalLocationService".equals(service.service.getClassName())) {
+            if ("com.example.smartdispatch_auth.Services.RequesterLocaitonService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }
@@ -208,6 +205,12 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
             startActivity(intent);
         }else if(v.getId() == R.id.sign_out){
             FirebaseAuth.getInstance().signOut();
+
+            SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+            editor.remove("type");
+
+            ((UserClient)getApplicationContext()).setHospital(null);
+            ((UserClient)getApplicationContext()).setRequest(null);
 
             Intent intent = new Intent(HospitalMainActivity.this, EntryPoint.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

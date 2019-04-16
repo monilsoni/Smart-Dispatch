@@ -9,13 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -29,10 +29,8 @@ import android.widget.Toast;
 import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Services.RequesterLocationService;
-import com.example.smartdispatch_auth.Services.VehicleLocationService;
+import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
-import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -44,9 +42,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -200,34 +196,6 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
     public void display() {
 
-        Vehicle vehicle = ((UserClient) getApplicationContext()).getVehicle();
-
-        set = true;
-
-        final DocumentReference docRef = FirebaseFirestore.getInstance()
-                .collection(getString(R.string.collection_vehicles))
-                .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-
-                if (snapshot != null && snapshot.exists() && snapshot.getData().get("geoPoint") != null) {
-                    Log.d(TAG, "Current data: " + snapshot.getData());
-                    mVehicle.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
-
-                } else {
-                    Log.d(TAG, "Current data: null");
-                }
-            }
-        });
-
-
     }
 
     @Override
@@ -235,6 +203,12 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         switch (v.getId()){
             case R.id.sign_out:{
                 FirebaseAuth.getInstance().signOut();
+
+                SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                editor.remove("type");
+
+                ((UserClient)getApplicationContext()).setVehicle(null);
+                ((UserClient)getApplicationContext()).setRequest(null);
 
                 Intent intent = new Intent(VehicleMainActivity.this, EntryPoint.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -316,7 +290,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, VehicleLocationService.class);
+            Intent serviceIntent = new Intent(this, LocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 VehicleMainActivity.this.startForegroundService(serviceIntent);
@@ -329,7 +303,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.example.smartdispatch_auth.Services.RequesterLocationService".equals(service.service.getClassName())) {
+            if ("com.example.smartdispatch_auth.Services.LocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }

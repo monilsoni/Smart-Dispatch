@@ -8,13 +8,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +26,7 @@ import android.widget.Toast;
 import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.Services.RequesterLocationService;
+import com.example.smartdispatch_auth.Services.LocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
@@ -39,9 +39,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -97,7 +95,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
-            Intent serviceIntent = new Intent(this, RequesterLocationService.class);
+            Intent serviceIntent = new Intent(this, LocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
                 RequesterMainActivity.this.startForegroundService(serviceIntent);
@@ -110,7 +108,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.example.smartdispatch_auth.Services.RequesterLocationService".equals(service.service.getClassName())) {
+            if ("com.example.smartdispatch_auth.Services.LocationService".equals(service.service.getClassName())) {
                 Log.d(TAG, "isLocationServiceRunning: location service is already running.");
                 return true;
             }
@@ -118,7 +116,6 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         return false;
     }
-
     /*  Override methods  */
 
     @Override
@@ -126,6 +123,12 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         switch (v.getId()) {
             case R.id.sign_out: {
                 FirebaseAuth.getInstance().signOut();
+
+                SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                editor.remove("type");
+
+                ((UserClient) getApplicationContext()).setRequester(null);
+                ((UserClient) getApplicationContext()).setRequest(null);
 
                 Intent intent = new Intent(RequesterMainActivity.this, EntryPoint.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -160,7 +163,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     private void getUserDetails() {
 
         progress.show();
-        if (mRequester == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             mRequester = new Requester();
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -169,7 +172,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        if(task.getResult().exists()){
+                        if (task.getResult().exists()) {
 
                             mRequester = task.getResult().toObject(Requester.class);
                             mRequester.setTimeStamp(null);
@@ -183,8 +186,6 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                     }
                 }
             });
-        } else {
-            getLastKnownLocation();
         }
     }
 
@@ -202,7 +203,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
 
                     Location mLocation = task.getResult();
                     GeoPoint geoPoint = (mLocation != null) ?
-                            new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude()) : new GeoPoint(0 ,0);
+                            new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude()) : new GeoPoint(0, 0);
 
                     mRequester.setGeoPoint(geoPoint);
 
@@ -228,17 +229,16 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     @Override
     protected void onResume() {
         super.onResume();
-        if(!Utilities.checkInternetConnectivity(this))
+        if (!Utilities.checkInternetConnectivity(this))
             source = Source.CACHE;
         else
             source = Source.DEFAULT;
 
 
-        if(checkMapServices()){
-            if(mLocationPermissionGranted){
+        if (checkMapServices()) {
+            if (mLocationPermissionGranted) {
                 getUserDetails();
-            }
-            else{
+            } else {
                 getLocationPermission();
             }
         }
@@ -247,12 +247,36 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     }
 
     private void checkForRequests() {
-        // todo: set the request object in the user client and check in the database
-        // todo: then decide if you want to display it here
+        
+        mRequest = ((UserClient)getApplicationContext()).getRequest();
+        if(mRequest != null){
+            Log.d(TAG, "checkForRequests: Request is not null");
+            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+
+            findViewById(R.id.submit_request).setVisibility(View.GONE);
+        }
+
+        final Request[] request = new Request[1];
         FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult())
+                                if (document.exists())
+                                    request[0] = document.toObject(Request.class);
+                                    if (request[0].getRequester().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                        mRequest = request[0];
+                                        ((UserClient)getApplicationContext()).setRequest(mRequest);
+
+                                        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
+                                        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+
+                                        findViewById(R.id.submit_request).setVisibility(View.GONE);
+                                        return;
+                                    }
+                        }
 
                     }
                 });
@@ -260,8 +284,8 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     }
 
 
-    private boolean checkMapServices(){
-        if(isServicesOK()){
+    private boolean checkMapServices() {
+        if (isServicesOK()) {
             return isMapsEnabled();
         }
         return false;
@@ -281,10 +305,10 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         alert.show();
     }
 
-    public boolean isMapsEnabled(){
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+    public boolean isMapsEnabled() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
             return false;
         }
@@ -309,22 +333,21 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         }
     }
 
-    public boolean isServicesOK(){
+    public boolean isServicesOK() {
         Log.d(TAG, "isServicesOK: checking google services version");
 
         int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(RequesterMainActivity.this);
 
-        if(available == ConnectionResult.SUCCESS){
+        if (available == ConnectionResult.SUCCESS) {
             //everything is fine and the user can make map requests
             Log.d(TAG, "isServicesOK: Google Play Services is working");
             return true;
-        }
-        else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
             //an error occured but we can resolve it
             Log.d(TAG, "isServicesOK: an error occured but we can fix it");
             Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(RequesterMainActivity.this, available, ERROR_DIALOG_REQUEST);
             dialog.show();
-        }else{
+        } else {
             Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
@@ -352,10 +375,9 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(mLocationPermissionGranted){
+                if (mLocationPermissionGranted) {
                     getUserDetails();
-                }
-                else{
+                } else {
                     getLocationPermission();
                 }
             }

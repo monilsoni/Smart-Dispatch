@@ -2,6 +2,7 @@ package com.example.smartdispatch_auth.UI;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -129,6 +130,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
                                         .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
+                            SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                            editor.putString("type", "requester");
+                            editor.apply();
 
                             Intent intent = new Intent(LoginActivity.this, RequesterMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -145,6 +149,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
                                         .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
+                            SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                            editor.putString("type", "vehicle");
+                            editor.apply();
+
 
                             Intent intent = new Intent(LoginActivity.this, VehicleMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -160,6 +168,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals))
                                         .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
+                            SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                            editor.putString("type", "hospital");
+                            editor.apply();
 
                             Intent intent = new Intent(LoginActivity.this, HospitalMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

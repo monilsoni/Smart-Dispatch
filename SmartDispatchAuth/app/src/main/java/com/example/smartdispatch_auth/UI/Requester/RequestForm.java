@@ -35,8 +35,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.sql.Timestamp;
 import java.lang.Float;
 import java.util.Objects;
 
