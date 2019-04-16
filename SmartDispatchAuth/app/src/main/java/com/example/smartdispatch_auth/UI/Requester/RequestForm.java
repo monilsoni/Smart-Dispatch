@@ -35,6 +35,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.sql.Timestamp;
 import java.lang.Float;
 import java.util.Objects;
 
@@ -52,7 +56,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     //Variables
 
     private int severity;
-    private Location currloc;
+    private static Location currloc;
 
     private ProgressDialog progress;
     private Requester requester;
@@ -103,42 +107,45 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         Log.d(TAG, "presses send");
 
 
-        FirebaseFirestore.getInstance().collection("Cluster Main").get()
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_cluster_main)).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        float temp = Float.MAX_VALUE;
-                        Cluster nearestCluster = new Cluster();
+                        ArrayList<Cluster> clusters = new ArrayList<Cluster>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Cluster c = document.toObject(Cluster.class);
+                            clusters.add(c);
+                        }
 
-                            Location l1 = new Location("");
-                            l1.setLongitude(c.getGeoPoint().getLatitude());
-                            l1.setLongitude(c.getGeoPoint().getLongitude());
+                        Collections.sort(clusters,sortClusters());
 
-                            if (temp >= currloc.distanceTo(l1)) {
-                                temp = currloc.distanceTo(l1);
-                                nearestCluster = c;
+                        ArrayList<Vehicle> Available_Vehicles=null;
+
+                        for(Cluster cluster : clusters)
+                        {
+                            Available_Vehicles = new ArrayList<Vehicle>();
+
+                            for (Vehicle vehicle : cluster.getVehicles()) {
+                                if (vehicle.getEngage() == 0)
+                                    Available_Vehicles.add(vehicle);
                             }
+                            if(Available_Vehicles.size()>0)
+                                break;
+
                         }
 
-                        ArrayList<Vehicle> Available_Vehicles = new ArrayList<Vehicle>();
+
                         Vehicle nearestVehicle;
-
-                        for (Vehicle vehicle : nearestCluster.getVehicles()) {
-                            if (vehicle.getEngage() == 0)
-                                Available_Vehicles.add(vehicle);
-                        }
-
                         int vehicles_count = Available_Vehicles.size();
                         if (vehicles_count == 0)
                             Log.d("Vehicle-count", "no free vehicles");
                         else {
 
-                            int x = (int) (Math.random() * ((vehicles_count - 1) + 1));
-                            nearestVehicle = nearestCluster.getVehicles().get(x);
+                            Collections.sort(Available_Vehicles,sortVehicles());
 
-                            FirebaseFirestore.getInstance().collection("Hospital").get()
+                            nearestVehicle = Available_Vehicles.get(0);
+
+                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).get()
                                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                         float temp = Float.MAX_VALUE;
 
@@ -149,7 +156,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                             for (QueryDocumentSnapshot document : task.getResult()) {
 
                                                 Hospital h = document.toObject(Hospital.class);
-
+                                                Log.d(TAG, h.toString());
                                                 Location l1 = new Location("");
                                                 l1.setLongitude(h.getGeoPoint().getLatitude());
                                                 l1.setLongitude(h.getGeoPoint().getLongitude());
@@ -187,11 +194,12 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                     nearestVehicle,
                                                     nearestHospital,
                                                     typeofemergency,
-                                                    scaleofemergency
+                                                    scaleofemergency,
+                                                    0
                                             );
 
 
-                                            FirebaseFirestore.getInstance().collection("Requests").add(request)
+                                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).add(request)
                                                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                         @Override
                                                         public void onSuccess(DocumentReference documentReference) {
@@ -229,6 +237,60 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                     }
                 });
 
+    }
+
+    public static Comparator<Cluster> sortClusters()
+    {
+        Comparator comp = new Comparator<Cluster>(){
+            @Override
+            public int compare(Cluster c1, Cluster c2)
+            {
+                Location l1 = new Location("");
+                Location l2 = new Location("");
+
+                l1.setLatitude(c1.getGeoPoint().getLatitude());
+                l1.setLongitude(c1.getGeoPoint().getLongitude());
+
+                l2.setLatitude(c2.getGeoPoint().getLatitude());
+                l2.setLongitude(c2.getGeoPoint().getLongitude());
+
+                float dist1 = currloc.distanceTo(l1);
+                float dist2 = currloc.distanceTo(l2);
+
+                if(dist1<dist2)
+                    return 1;
+                else
+                    return 0;
+            }
+        };
+        return comp;
+    }
+
+    public static Comparator<Vehicle> sortVehicles()
+    {
+        Comparator comp = new Comparator<Vehicle>(){
+            @Override
+            public int compare(Vehicle c1, Vehicle c2)
+            {
+                Location l1 = new Location("");
+                Location l2 = new Location("");
+
+                l1.setLatitude(c1.getGeoPoint().getLatitude());
+                l1.setLongitude(c1.getGeoPoint().getLongitude());
+
+                l2.setLatitude(c2.getGeoPoint().getLatitude());
+                l2.setLongitude(c2.getGeoPoint().getLongitude());
+
+                float dist1 = currloc.distanceTo(l1);
+                float dist2 = currloc.distanceTo(l2);
+
+                if(dist1<dist2)
+                    return 1;
+                else
+                    return 0;
+            }
+        };
+        return comp;
     }
 
     public void onclickSendSmS() {

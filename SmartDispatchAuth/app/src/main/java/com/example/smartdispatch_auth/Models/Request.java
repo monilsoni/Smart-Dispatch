@@ -21,6 +21,7 @@ public class Request implements Parcelable {
     private Hospital hospital;
     private String typeofemergency;
     private int scaleofemergency;
+    private int vehiclereached;
 
     protected Request(Parcel in) {
         requester = in.readParcelable(Requester.class.getClassLoader());
@@ -28,17 +29,19 @@ public class Request implements Parcelable {
         hospital = in.readParcelable(Hospital.class.getClassLoader());
         typeofemergency = in.readString();
         scaleofemergency = in.readInt();
+        vehiclereached = in.readInt();
     }
 
     public Request() {
     }
 
-    public Request(Requester requester, Vehicle vehicle, Hospital hospital, String typeofemergency, int scaleofemergency) {
+    public Request(Requester requester, Vehicle vehicle, Hospital hospital, String typeofemergency, int scaleofemergency, int vehiclereached) {
         this.requester = requester;
         this.vehicle = vehicle;
         this.hospital = hospital;
         this.typeofemergency = typeofemergency;
         this.scaleofemergency = scaleofemergency;
+        this.vehiclereached = vehiclereached;
     }
 
     @Override
@@ -104,5 +107,14 @@ public class Request implements Parcelable {
         dest.writeParcelable(hospital, flags);
         dest.writeString(typeofemergency);
         dest.writeInt(scaleofemergency);
+        dest.writeInt(vehiclereached);
+    }
+
+    public int getVehiclereached() {
+        return vehiclereached;
+    }
+
+    public void setVehiclereached(int vehiclereached) {
+        this.vehiclereached = vehiclereached;
     }
 }

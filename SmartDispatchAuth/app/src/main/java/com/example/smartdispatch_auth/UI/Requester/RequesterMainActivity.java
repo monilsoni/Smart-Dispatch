@@ -65,7 +65,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
     private Request mRequest = null;
-    private boolean set = false;
+
     Source source = Source.DEFAULT;
     ProgressDialog progress;
 
@@ -250,14 +250,13 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
         
         mRequest = ((UserClient)getApplicationContext()).getRequest();
         if(mRequest != null){
-            Log.d(TAG, "checkForRequests: Request is not null");
+
             findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
             findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
 
             findViewById(R.id.submit_request).setVisibility(View.GONE);
         }
 
-        Log.d(TAG, "checkForRequests: null");
         final Request[] request = new Request[1];
         FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
