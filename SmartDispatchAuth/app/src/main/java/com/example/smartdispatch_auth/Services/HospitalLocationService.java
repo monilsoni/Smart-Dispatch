@@ -22,7 +22,6 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.example.smartdispatch_auth.Models.Hospital;
-import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UserClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -135,8 +134,11 @@ public class HospitalLocationService extends Service {
     private void saveUserLocation(final Hospital hospital){
 
         try{
+            if(FirebaseAuth.getInstance().getCurrentUser() == null)
+                return;
+
             DocumentReference locationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_hospital))
+                    .collection(getString(R.string.collection_hospitals))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
             locationRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {

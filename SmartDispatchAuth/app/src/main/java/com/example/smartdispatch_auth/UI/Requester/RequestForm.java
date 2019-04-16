@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.lang.Float;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Objects;
 
 import static com.example.smartdispatch_auth.Constants.MY_PERMISSIONS_REQUEST_SEND_SMS;
 
@@ -103,22 +103,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
         progress.show();
         Log.d(TAG, "presses send");
-        //createRequest();
-        String typeofemergency = "";
-        if (mChkbox_medical.isChecked())
-            typeofemergency += "Medical ";
-        if (mChkbox_fire.isChecked())
-            typeofemergency += "Fire ";
-        if (mChkbox_other.isChecked())
-            typeofemergency += "Other";
-
-        int scaleofemergency = mSeek_severity.getProgress();
-
-
-        Date date = new Date();
-        Timestamp ts = new Timestamp(date.getTime());
-
-        // double latitude = 23.56, longitude = 26.56;
 
 
         FirebaseFirestore.getInstance().collection("Cluster Main").get()
@@ -181,19 +165,19 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
                                             String typeofemergency = "";
                                             if (mChkbox_medical.isChecked()) {
-                                                if (typeofemergency != "")
+                                                if (!Objects.equals(typeofemergency, ""))
                                                     typeofemergency += ",";
                                                 typeofemergency += "Medical ";
                                             }
 
                                             if (mChkbox_fire.isChecked()) {
-                                                if (typeofemergency != "")
+                                                if (!Objects.equals(typeofemergency, ""))
                                                     typeofemergency += ",";
                                                 typeofemergency += "Fire ";
                                             }
 
                                             if (mChkbox_other.isChecked()) {
-                                                if (typeofemergency != "")
+                                                if (!Objects.equals(typeofemergency, ""))
                                                     typeofemergency += ",";
                                                 typeofemergency += "Other";
                                             }
@@ -209,7 +193,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                             );
 
 
-                                            Intent intent = new Intent(RequestForm.this, UserMainActivity.class);
                                             FirebaseFirestore.getInstance().collection("Requests").add(request)
                                                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                                         @Override
@@ -217,8 +200,9 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                             Log.d(TAG, "onSuccess: Request Stored.");
                                                             progress.dismiss();
 
+                                                            Intent intent = new Intent(RequestForm.this, RequesterMainActivity.class);
                                                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                            intent.putExtra("request", request);
+                                                            ((UserClient)getApplicationContext()).setRequest(request);
 
                                                             new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifVehicle?id=" +
                                                                     request.getVehicle().getUser_id() +
@@ -311,17 +295,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage("8347747701", null, message, null, null);
         showToast("SMS sent");
-    }
-
-    private void createRequest() {
-        String typeofemergency = null;
-        if (mChkbox_medical.isChecked())
-            typeofemergency += "Medical ";
-        if (mChkbox_fire.isChecked())
-            typeofemergency += "Fire ";
-        if (mChkbox_other.isChecked())
-            typeofemergency += "Other";
-
     }
 
     private void showToast(String msg) {

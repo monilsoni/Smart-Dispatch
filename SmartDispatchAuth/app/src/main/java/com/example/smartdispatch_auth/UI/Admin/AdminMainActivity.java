@@ -104,8 +104,23 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         switch (v.getId()){
             case R.id.allocateVehicle: {
                 progress.show();
-                // todo : change the number of vehicles here
-                new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve?vehicles=1");
+
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if(task.isSuccessful()){
+
+                                    QuerySnapshot queryDocumentSnapshot = task.getResult();
+                                    if(queryDocumentSnapshot != null)
+                                        new GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/retrieve?vehicles=" + queryDocumentSnapshot.size());
+
+
+                                }
+                            }
+                        });
+
+
                 break;
             }
 
@@ -243,6 +258,8 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
     private void Parserequest(String req) {
 
         String data[] = req.split("\\n");
+
+        // Todo: where is this used?
         SMSRequest request = new SMSRequest(data[1],data[2],data[3],data[4],data[5]);
 
     }

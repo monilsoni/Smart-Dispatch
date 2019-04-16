@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -99,8 +100,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     }
 
-    public void registerNewEmail(final String email, String password, final String aadhar_number, final String phone_number, final String name, final String sex, final String age) {
+    public void registerRequesterNewEmail(final String email, String password, final String aadhar_number, final String phone_number, final String name, final String sex, final String age) {
 
+        Log.d(TAG, "registerRequesterNewEmail: " + email + aadhar_number);
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -161,7 +163,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             Hospital hospital = new Hospital(new GeoPoint(0, 0), time, name, email, FirebaseAuth.getInstance().getCurrentUser().getUid(), FirebaseInstanceId.getInstance().getToken(), "hospital", contactno);
 
                             DocumentReference newUserRef = FirebaseFirestore.getInstance()
-                                    .collection(getString(R.string.collection_hospital))
+                                    .collection(getString(R.string.collection_hospitals))
                                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                             newUserRef.set(hospital).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -281,7 +283,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                             Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
                             Utilities.showDialog(mProgressBar);
-                            registerNewEmail(email, password, aadhar_number, phone_number, name, sex, age);
+                            registerRequesterNewEmail(email, password, aadhar_number, phone_number, name, sex, age);
                         } else {
                             Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                         }

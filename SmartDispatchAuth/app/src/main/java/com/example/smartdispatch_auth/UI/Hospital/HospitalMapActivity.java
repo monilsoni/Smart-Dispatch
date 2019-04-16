@@ -80,8 +80,6 @@ public class HospitalMapActivity extends AppCompatActivity implements
     private RequestClusterManagerRenderer mClusterManagerRenderer;
     private ArrayList<RequestClusterMarker> mClusterMarkers = new ArrayList<>();
     private ArrayList<PolylineData> mPolylinesData = new ArrayList<>();
-    private ArrayList<Marker> mTripMarkers = new ArrayList<>();
-
 
     private Request mRequest;
     private Hospital mHospital;
@@ -91,8 +89,6 @@ public class HospitalMapActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
-        findViewById(R.id.btn_go).setOnClickListener(this);
-
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -110,11 +106,12 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
         initGoogleMap(savedInstanceState);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                vehicleReached, new IntentFilter("vReach"));
+        // todo: decide where to put the broadcast receiver
+        /*LocalBroadcastManager.getInstance(this).registerReceiver(
+                vehicleReached, new IntentFilter("vReach"));*/
     }
 
-    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+    /*private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             vehicle_reached = true;
@@ -123,7 +120,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
                     mRequest.getHospital().getGeoPoint());
         }
 
-    };
+    };*/
 
 
     /* Helper methods */
@@ -181,10 +178,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
                 double duration = Double.MAX_VALUE;
 
-                int i = 0;
                 for (DirectionsRoute route : result.routes) {
-                    i++;
-                    Log.d(TAG, "run: i=" + i);
                     Log.d(TAG, "run: leg: " + route.legs[0].toString());
                     List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
 
@@ -205,7 +199,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
                     double tempDuration = route.legs[0].duration.inSeconds;
                     if (tempDuration < duration) {
                         duration = tempDuration;
-                        onPolylineClick(polyline); // this simulates the click. Important!
+                        onPolylineClick(polyline);
                         zoomRoute(polyline.getPoints());
                     }
 
@@ -319,7 +313,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
                     case "hospital": {
                         DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                                .collection(getString(R.string.collection_hospital))
+                                .collection(getString(R.string.collection_hospitals))
                                 .document(clusterMarker.getUser().getUser_id());
 
                         userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -384,20 +378,39 @@ public class HospitalMapActivity extends AppCompatActivity implements
                 );
                 mClusterManager.setRenderer(mClusterManagerRenderer);
             }
-            //mGoogleMap.setOnInfoWindowClickListener(this);
 
             for (User user : mUserLocations) {
 
                 Log.d(TAG, "addMapMarkers: location: " + user.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                        snippet = "This is you";
-                    } else {
-                        snippet = "Determine route to " + user.getEmail() + "?";
+                    int avatar = R.drawable.ic_launcher_background;
+
+                    switch (user.getType()){
+
+                        case "requester": {
+                            snippet = "This is you";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
+                        case "hospital": {
+                            snippet = "This is the Hospital";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
+                        case "vehicle":{
+                            snippet = "This is the Vehicle";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
                     }
 
-                    int avatar = R.drawable.ic_launcher_background; // set the default avatar
 
                     RequestClusterMarker newClusterMarker = new RequestClusterMarker(
                             new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),
@@ -406,6 +419,7 @@ public class HospitalMapActivity extends AppCompatActivity implements
                             avatar,
                             user
                     );
+
                     mClusterManager.addItem(newClusterMarker);
                     mClusterMarkers.add(newClusterMarker);
 
@@ -439,10 +453,11 @@ public class HospitalMapActivity extends AppCompatActivity implements
         );
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
-        if(vehicle_alloted)
-            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+
+        calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
-        else if(vehicle_reached)
+
+        if (vehicle_reached)
             calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
 
@@ -516,18 +531,6 @@ public class HospitalMapActivity extends AppCompatActivity implements
             case R.id.btn_reset_map: {
                 addMapMarkers();
                 break;
-            }
-
-            case R.id.btn_go: {
-                if (toggle) {
-                    calculateDirections(mRequest.getVehicle().getGeoPoint(),
-                            mRequest.getRequester().getGeoPoint());
-                    toggle = false;
-                } else {
-                    calculateDirections(mRequest.getRequester().getGeoPoint(),
-                            mRequest.getHospital().getGeoPoint());
-                    toggle = true;
-                }
             }
         }
     }

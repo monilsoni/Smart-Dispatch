@@ -135,6 +135,9 @@ public class VehicleLocationService extends Service {
     private void saveUserLocation(final Vehicle vehicle){
 
         try{
+            if(FirebaseAuth.getInstance().getCurrentUser() == null)
+                return;
+
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_vehicles))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());

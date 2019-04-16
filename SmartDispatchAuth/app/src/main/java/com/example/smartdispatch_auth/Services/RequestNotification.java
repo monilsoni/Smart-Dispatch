@@ -25,15 +25,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import static android.support.constraint.Constraints.TAG;
+
 public class RequestNotification extends FirebaseMessagingService {
 
-    private Map<String, String> hashMap = new HashMap<>();
     private String authenticator = "";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        hashMap = remoteMessage.getData();
+        Map<String, String> hashMap = remoteMessage.getData();
         showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), hashMap);
     }
 
@@ -59,38 +60,50 @@ public class RequestNotification extends FirebaseMessagingService {
 
         getAuthenicator();
 
-        if(hashMap.get("user").equals("hospital")){
-            if(authenticator.equals("hospital"))
-                notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
 
-            if (hashMap.get("type").equals("connected")) {
-                Intent i = new Intent("send");
-                LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-            }
-            else{
-                Intent i = new Intent("vReach");
-                LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-            }
+        switch (hashMap.get("user")) {
+            case "hospital":
+                if (authenticator.equals("hospital")){
+                    notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
 
-        }else if(hashMap.get("user").equals("requester")){
-            if(authenticator.equals("requester"))
-                notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
+                    if (hashMap.get("type").equals("connected")) {
+                        Intent i = new Intent("send");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    } else {
+                        Intent i = new Intent("vReach");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    }
+                }
 
 
-            if (hashMap.get("type").equals("connected")) {
-                Intent i = new Intent("vehicle_alloted");
-                LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-            } else {
-                Intent i = new Intent("vehicle_reached");
-                LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-            }
+                break;
+            case "requester":
+                if (authenticator.equals("requester")){
+                    notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
 
-        }else{
-            if(authenticator.equals("vehicle"))
-                notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
+                    if (hashMap.get("type").equals("connected")) {
+                        Intent i = new Intent("vehicle_alloted");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    } else {
+                        Intent i = new Intent("vehicle_reached");
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                    }
 
-            Intent i = new Intent("get");
-            LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                }
+
+                break;
+            case "vehicle":
+                if (authenticator.equals("vehicle")){
+                    notificationManager.notify(new Random().nextInt(), notificationBuilder.build());
+
+                    Intent i = new Intent("get");
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+                }
+
+                break;
+
+            default:
+                Log.d(TAG, "showNotification: Error in matching the user");
         }
 
 
@@ -105,7 +118,7 @@ public class RequestNotification extends FirebaseMessagingService {
         token.put("token", s);
         if(FirebaseAuth.getInstance().getCurrentUser() != null){
             if(authenticator.equals("hospital")){
-                FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospital)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
             }else if(authenticator.equals("vehicle")){
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
@@ -121,6 +134,9 @@ public class RequestNotification extends FirebaseMessagingService {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user != null){
             String email = user.getEmail();
+            if(email == null)
+                return;
+
             if(email.contains("@smartdispatch.gov.in")){
                 if(email.contains("v_"))
                     authenticator = "vehicle";

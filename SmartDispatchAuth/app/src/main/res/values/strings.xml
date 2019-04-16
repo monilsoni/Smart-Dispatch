@@ -5,7 +5,8 @@
     <!-- Firestore Strings -->
     <string name="collection_users">Users</string>
     <string name="collection_vehicles">Vehicles</string>
-    <string name="collection_hospital">Hospital</string>
+    <string name="collection_hospitals">Hospitals</string>
+    <string name="collection_request">Requests</string>
 
     <string name="intent_user_list">intent_user_list</string>
     <string name="intent_user_locations">intent_user_locations</string>
@@ -17,6 +18,6 @@
     <string name="gps_not_connected">GPS: Not Connected</string>
     <string name="internet_connected">Internet: Connected</string>
     <string name="gps_connected">GPS: Connected</string>
-    <string name="collection_request">Requests</string>
+
 
 </resources>

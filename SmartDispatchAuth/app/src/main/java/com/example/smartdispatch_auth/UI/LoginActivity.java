@@ -13,9 +13,8 @@ import android.widget.Toast;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.Admin.AdminMainActivity;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMainActivity;
-import com.example.smartdispatch_auth.UI.Requester.UserMainActivity;
+import com.example.smartdispatch_auth.UI.Requester.RequesterMainActivity;
 import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
-import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -123,14 +122,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     switch (authenticator){
                         case "requester": {
-                            /*
+
                             Map<String, Object> token = new HashMap<>();
                             token.put("token", FirebaseInstanceId.getInstance().getToken());
                             if(FirebaseAuth.getInstance().getCurrentUser() != null)
-                                FirebaseFirestore.getInstance().collection("Hospital").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+                                FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
+                                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
 
-                            */
-                            Intent intent = new Intent(LoginActivity.this, UserMainActivity.class);
+
+                            Intent intent = new Intent(LoginActivity.this, RequesterMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
@@ -138,6 +138,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         }
 
                         case "vehicle" :{
+
+                            Map<String, Object> token = new HashMap<>();
+                            token.put("token", FirebaseInstanceId.getInstance().getToken());
+                            if(FirebaseAuth.getInstance().getCurrentUser() != null)
+                                FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
+                                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+
+
                             Intent intent = new Intent(LoginActivity.this, VehicleMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
@@ -146,6 +154,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         }
 
                         case "hospital" :{
+                            Map<String, Object> token = new HashMap<>();
+                            token.put("token", FirebaseInstanceId.getInstance().getToken());
+                            if(FirebaseAuth.getInstance().getCurrentUser() != null)
+                                FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals))
+                                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(token, SetOptions.merge());
+
+
                             Intent intent = new Intent(LoginActivity.this, HospitalMainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);

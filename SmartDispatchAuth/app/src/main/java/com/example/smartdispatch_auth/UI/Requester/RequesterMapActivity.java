@@ -54,12 +54,12 @@ import java.util.List;
 
 import static com.example.smartdispatch_auth.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class UserMapActivity extends AppCompatActivity implements
+public class RequesterMapActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         View.OnClickListener,
         GoogleMap.OnPolylineClickListener {
 
-    private static final String TAG = "UserMapActivity";
+    private static final String TAG = "RequesterMapActivity";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     // widgets
@@ -90,8 +90,6 @@ public class UserMapActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         findViewById(R.id.btn_reset_map).setOnClickListener(this);
-        findViewById(R.id.btn_go).setOnClickListener(this);
-
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -109,13 +107,14 @@ public class UserMapActivity extends AppCompatActivity implements
 
         initGoogleMap(savedInstanceState);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
+        /*LocalBroadcastManager.getInstance(this).registerReceiver(
                 vehicleAlloted, new IntentFilter("vehicle_alloted"));
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                vehicleReached, new IntentFilter("vehicle_reached"));
+                vehicleReached, new IntentFilter("vehicle_reached"));*/
     }
 
+    /*
     private BroadcastReceiver vehicleAlloted = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -132,7 +131,7 @@ public class UserMapActivity extends AppCompatActivity implements
 
         }
 
-    };
+    };*/
 
     /* Helper methods */
 
@@ -189,10 +188,7 @@ public class UserMapActivity extends AppCompatActivity implements
 
                 double duration = Double.MAX_VALUE;
 
-                int i = 0;
                 for (DirectionsRoute route : result.routes) {
-                    i++;
-                    Log.d(TAG, "run: i=" + i);
                     Log.d(TAG, "run: leg: " + route.legs[0].toString());
                     List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
 
@@ -327,7 +323,7 @@ public class UserMapActivity extends AppCompatActivity implements
 
                     case "hospital": {
                         DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                                .collection(getString(R.string.collection_hospital))
+                                .collection(getString(R.string.collection_hospitals))
                                 .document(clusterMarker.getUser().getUser_id());
 
                         userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -399,13 +395,32 @@ public class UserMapActivity extends AppCompatActivity implements
                 Log.d(TAG, "addMapMarkers: location: " + user.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                        snippet = "This is you";
-                    } else {
-                        snippet = "Determine route to " + user.getEmail() + "?";
-                    }
+                    int avatar = R.drawable.ic_launcher_background;
 
-                    int avatar = R.drawable.ic_launcher_background; // set the default avatar
+                    switch (user.getType()){
+
+                        case "requester": {
+                            snippet = "This is you";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
+                        case "hospital": {
+                            snippet = "This is the Hospital";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
+                        case "vehicle":{
+                            snippet = "This is the Vehicle";
+                            avatar = R.drawable.ic_launcher_background;
+
+                            break;
+                        }
+
+                    }
 
                     RequestClusterMarker newClusterMarker = new RequestClusterMarker(
                             new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),
@@ -448,10 +463,10 @@ public class UserMapActivity extends AppCompatActivity implements
 
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
 
-        if(vehicle_alloted)
-            calculateDirections(mRequest.getVehicle().getGeoPoint(),
+        calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
-        else if(vehicle_reached)
+
+        if(vehicle_reached)
             calculateDirections(mRequest.getVehicle().getGeoPoint(),
                     mRequest.getRequester().getGeoPoint());
 
@@ -540,7 +555,7 @@ public class UserMapActivity extends AppCompatActivity implements
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
 
-                Toast.makeText(UserMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
+                Toast.makeText(RequesterMapActivity.this, "Trip Duration: " + polylineData.getLeg().duration, Toast.LENGTH_LONG).show();
             } else {
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(), R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);

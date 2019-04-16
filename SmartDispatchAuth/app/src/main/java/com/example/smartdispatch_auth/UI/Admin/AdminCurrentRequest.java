@@ -21,6 +21,7 @@ import com.example.smartdispatch_auth.UI.Hospital.RequestAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -76,8 +77,11 @@ public class AdminCurrentRequest extends AppCompatActivity {
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 recurrentRead++;
                 if (recurrentRead == 1) {
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful()){
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            if(!document.exists())
+                                continue;
 
                             Request request = document.toObject(Request.class);
 

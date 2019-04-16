@@ -309,7 +309,7 @@ public class VehicleMapActivity extends AppCompatActivity implements
 
                     case "hospital": {
                         DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                                .collection(getString(R.string.collection_hospital))
+                                .collection(getString(R.string.collection_hospitals))
                                 .document(clusterMarker.getUser().getUser_id());
 
                         userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

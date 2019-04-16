@@ -100,6 +100,8 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
                                     if (task.isSuccessful()) {
                                         for (QueryDocumentSnapshot document : task.getResult()) {
                                             Request request = document.toObject(Request.class);
+
+                                            // todo: tackle the index out of bounds exception here
                                             if(request.getRequester().getUser_id().equals(requests.get(k).getRequester().getUser_id())){
                                                 document.getReference().delete();
                                                 FirebaseFirestore.getInstance().collection("Request History").add(request);

@@ -6,8 +6,6 @@
     android:background="#EEE"
     android:id="@+id/drawer">
 
-
-
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
@@ -91,7 +89,7 @@
                     android:padding="15dp">
 
                     <TextView
-                        android:id="@+id/hospitalName"
+                        android:id="@+id/hospitalnameTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Hospital Name : "
@@ -99,12 +97,12 @@
                         android:textSize="16dp" />
 
                     <TextView
+                        android:id="@+id/hospital_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
-                        android:text="Ashka Hospital"
                         android:textSize="15dp"
-                        android:layout_toRightOf="@id/hospitalName"
+                        android:layout_toRightOf="@id/hospitalnameTextView"
                         android:textColor="@color/ColorSecondary"/>
                 </RelativeLayout>
 
@@ -118,7 +116,7 @@
                     android:layout_below="@id/nameLayout">
 
                     <TextView
-                        android:id="@+id/contactNo"
+                        android:id="@+id/contactnoTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Contact No. : "
@@ -126,39 +124,12 @@
                         android:textSize="16dp" />
 
                     <TextView
+                        android:id="@+id/hospital_contact"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
-                        android:text="5863523652"
                         android:textSize="15dp"
-                        android:layout_toRightOf="@id/contactNo"
-                        android:textColor="@color/ColorSecondary"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/vehicleNoLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:orientation="horizontal"
-                    android:padding="15dp"
-                    android:layout_below="@id/contactLayout">
-
-                    <TextView
-                        android:id="@+id/hospitalAddress"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hospital Address : "
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:text="Ahmedabad"
-                        android:textSize="15dp"
-                        android:layout_toRightOf="@id/hospitalAddress"
+                        android:layout_toRightOf="@id/contactnoTextView"
                         android:textColor="@color/ColorSecondary"/>
                 </RelativeLayout>
 
@@ -172,7 +143,7 @@
                 android:layout_marginTop="30dp"
                 android:layout_marginBottom="20dp"
                 android:textAlignment="center"
-                android:text="Current Request"
+                android:text="Current Requests"
                 android:layout_below="@id/detailsLayout"
                 android:background="@drawable/button_background"
                 android:textColor="#FFF"

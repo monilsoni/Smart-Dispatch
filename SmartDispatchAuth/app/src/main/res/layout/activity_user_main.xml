@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#EEE"
     android:orientation="vertical"
-    tools:context=".UI.Requester.UserMainActivity">
+    tools:context=".UI.Requester.RequesterMainActivity">
 
     <RelativeLayout
         android:id="@+id/relativeLayout"

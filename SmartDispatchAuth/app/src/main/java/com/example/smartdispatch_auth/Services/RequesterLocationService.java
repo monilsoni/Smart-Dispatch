@@ -136,6 +136,9 @@ public class RequesterLocationService extends Service {
     private void saveUserLocation(final Requester requester){
 
         try{
+            if(FirebaseAuth.getInstance().getCurrentUser() == null)
+                return;
+
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());

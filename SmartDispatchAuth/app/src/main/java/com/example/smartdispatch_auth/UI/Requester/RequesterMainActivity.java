@@ -5,11 +5,9 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -19,11 +17,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,9 +28,6 @@ import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.RequesterLocationService;
 import com.example.smartdispatch_auth.UI.EntryPoint;
-import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
-import com.example.smartdispatch_auth.UI.Vehicle.VehicleMainActivity;
-import com.example.smartdispatch_auth.UI.Vehicle.VehicleMapActivity;
 import com.example.smartdispatch_auth.UserClient;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.common.ConnectionResult;
@@ -54,19 +47,17 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Source;
 
-import java.util.ArrayList;
-
 import static com.example.smartdispatch_auth.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 // todo when driver reaches user, he will end the trip. then trip to hospital will be shown.
-// todo vehicle detect request object
+
 // todo when requester has an active request disable request form button and display the active request
 
-public class UserMainActivity extends AppCompatActivity implements View.OnClickListener {
+public class RequesterMainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = "UserMainActivity";
+    private static final String TAG = "RequesterMainActivity";
 
     // Android widgets
     private TextView mWelcomeText, mAadharText, mPhoneText;
@@ -96,20 +87,6 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        Intent intent = getIntent();
-        if(intent.getParcelableExtra("request") != null){
-            // todo: Fill in the vehicle layout
-            mRequest = intent.getParcelableExtra("request");
-            findViewById(R.id.submit_request).setVisibility(View.GONE);
-            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
-            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
-        }else{
-            Log.d(TAG, "onCreate: You have no requests pending");
-            findViewById(R.id.submit_request).setVisibility(View.VISIBLE);
-            findViewById(R.id.look_at_map).setVisibility(View.GONE);
-            findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
-        }
-
         progress = new ProgressDialog(this);
         progress.setMessage("Loading your data");
         progress.setCancelable(false);
@@ -123,7 +100,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             Intent serviceIntent = new Intent(this, RequesterLocationService.class);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
-                UserMainActivity.this.startForegroundService(serviceIntent);
+                RequesterMainActivity.this.startForegroundService(serviceIntent);
             } else {
                 startService(serviceIntent);
             }
@@ -150,7 +127,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
             case R.id.sign_out: {
                 FirebaseAuth.getInstance().signOut();
 
-                Intent intent = new Intent(UserMainActivity.this, EntryPoint.class);
+                Intent intent = new Intent(RequesterMainActivity.this, EntryPoint.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
@@ -159,14 +136,14 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
             case R.id.look_at_map: {
 
-                Intent intent = new Intent(UserMainActivity.this, UserMapActivity.class);
+                Intent intent = new Intent(RequesterMainActivity.this, RequesterMapActivity.class);
                 intent.putExtra("request", mRequest);
                 startActivity(intent);
                 break;
             }
 
             case R.id.submit_request: {
-                Intent intent = new Intent(UserMainActivity.this, RequestForm.class);
+                Intent intent = new Intent(RequesterMainActivity.this, RequestForm.class);
                 startActivity(intent);
                 break;
             }
@@ -182,10 +159,8 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
     private void getUserDetails() {
 
-        if (!set) {
-            progress.show();
-        }
-        if (mRequester == null) {
+        progress.show();
+        if (mRequester == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
             mRequester = new Requester();
             DocumentReference userRef = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users))
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -195,10 +170,11 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         if(task.getResult().exists()){
-                            Log.d(TAG, "onComplete: successfully set the requester client.");
-                            mRequester = task.getResult().toObject(Requester.class);
-                            Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
 
+                            mRequester = task.getResult().toObject(Requester.class);
+                            mRequester.setTimeStamp(null);
+
+                            Log.d(TAG, "Requester inside getUserDetails: " + mRequester.toString());
                             ((UserClient) (getApplicationContext())).setRequester(mRequester);
 
                             getLastKnownLocation();
@@ -225,18 +201,11 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
                     Log.d(TAG, "getLastLocation: Successful.");
 
                     Location mLocation = task.getResult();
-                    mRequester.setTimeStamp(null);
-                    GeoPoint geoPoint = new GeoPoint(0, 0);
-                    try {
-                        geoPoint = new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude());
+                    GeoPoint geoPoint = (mLocation != null) ?
+                            new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude()) : new GeoPoint(0 ,0);
 
-                    } catch (NullPointerException e) {
-                        Log.d(TAG, "getLastKnownLocation: mLocation is null.");
-
-                    }
                     mRequester.setGeoPoint(geoPoint);
 
-                    progress.dismiss();
                     startLocationService();
                     display();
                 }
@@ -247,44 +216,23 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
 
     public void display() {
 
-        Requester requester = ((UserClient) getApplicationContext()).getRequester();
+        // todo: modify the card to have two parts. then update the number part from here
 
-        mWelcomeText.setText("Welcome to SmartDispatch " + requester.getEmail().substring(0, requester.getEmail().indexOf("@")));
-        mAadharText.setText("Aadhar Number: " + requester.getAadhar_number());
-        mPhoneText.setText("Phone Number: " + requester.getPhone_number());
-        set = true;
-
-        final DocumentReference docRef = FirebaseFirestore.getInstance()
-                .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-
-                if (snapshot != null && snapshot.exists() && snapshot.getData().get("geoPoint") != null) {
-                    Log.d(TAG, "Current data: " + snapshot.getData());
-                    mRequester.setGeoPoint((GeoPoint) snapshot.getData().get("geoPoint"));
-                } else {
-                    Log.d(TAG, "Current data: null");
-                }
-            }
-        });
-
+        mWelcomeText.setText("Welcome to SmartDispatch " + mRequester.getEmail().substring(0, mRequester.getEmail().indexOf("@")));
+        mAadharText.setText("Aadhar Number: " + mRequester.getAadhar_number());
+        mPhoneText.setText("Phone Number: " + mRequester.getPhone_number());
+        progress.dismiss();
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(!Utilities.checkInternetConnectivity(this)){
+        if(!Utilities.checkInternetConnectivity(this))
             source = Source.CACHE;
-        }
+        else
+            source = Source.DEFAULT;
+
 
         if(checkMapServices()){
             if(mLocationPermissionGranted){
@@ -299,47 +247,22 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void checkForRequests() {
-        if(mRequest == null){
-            FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    Request request = document.toObject(Request.class);
-                                    if (request.getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                                        mRequest = request;
+        // todo: set the request object in the user client and check in the database
+        // todo: then decide if you want to display it here
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
 
-                                        Log.d(TAG, "onComplete: Oleoleole");
-                                        findViewById(R.id.submit_request).setVisibility(View.GONE);
-                                        findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
-                                        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
-                                    }
-
-                                }
-                            }
-
-                        }
-
-                    });
-
-        }else{
-
-            Log.d(TAG, "checkForRequests: Request abhi baaki hai mere dost");
-            findViewById(R.id.submit_request).setVisibility(View.GONE);
-            findViewById(R.id.vehicle_layout).setVisibility(View.VISIBLE);
-            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
-        }
-
+                    }
+                });
 
     }
 
 
     private boolean checkMapServices(){
         if(isServicesOK()){
-            if(isMapsEnabled()){
-                return true;
-            }
+            return isMapsEnabled();
         }
         return false;
     }
@@ -389,7 +312,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
     public boolean isServicesOK(){
         Log.d(TAG, "isServicesOK: checking google services version");
 
-        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(UserMainActivity.this);
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(RequesterMainActivity.this);
 
         if(available == ConnectionResult.SUCCESS){
             //everything is fine and the user can make map requests
@@ -399,7 +322,7 @@ public class UserMainActivity extends AppCompatActivity implements View.OnClickL
         else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
             //an error occured but we can resolve it
             Log.d(TAG, "isServicesOK: an error occured but we can fix it");
-            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(UserMainActivity.this, available, ERROR_DIALOG_REQUEST);
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(RequesterMainActivity.this, available, ERROR_DIALOG_REQUEST);
             dialog.show();
         }else{
             Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
