@@ -48,7 +48,7 @@ public class RequestNotification extends FirebaseMessagingService {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Notification",
-                    NotificationManager.IMPORTANCE_DEFAULT);
+                    NotificationManager.IMPORTANCE_HIGH);
             notificationChannel.setDescription("TEST");
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.BLUE);
@@ -60,6 +60,8 @@ public class RequestNotification extends FirebaseMessagingService {
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(title)
                 .setContentText(body)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentInfo("Info");
 
         SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
