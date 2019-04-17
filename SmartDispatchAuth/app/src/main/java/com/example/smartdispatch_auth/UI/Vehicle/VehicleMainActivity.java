@@ -41,6 +41,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -66,7 +68,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     private FusedLocationProviderClient mFusedLocationClient;
     private Vehicle mVehicle;
     private Request mRequest;
-    private boolean internetState =false, gpsState = false;
+    private boolean internetState = false, gpsState = false;
     private AlertDialog internetAlert, gpsAlert;
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -81,15 +83,15 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                                     Request request = document.toObject(Request.class);
                                     if (request.getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                                         mRequest = request;
-                                        ((UserClient)getApplicationContext()).setRequest(request);
+                                        ((UserClient) getApplicationContext()).setRequest(request);
 
                                         displayRequestDetails();
                                         Toast.makeText(VehicleMainActivity.this, "Got the request!", Toast.LENGTH_SHORT).show();
 
-                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequester?id="+
-                                                mRequest.getRequester().getUser_id()+
-                                                "&name="+mRequest.getVehicle().getDriver_name()+
-                                                "&no="+mRequest.getVehicle().getVehicle_number());
+                                        new Utilities.GetUrlContentTask().execute("https://us-central1-smartdispatch-auth.cloudfunctions.net/sendNotifRequester?id=" +
+                                                mRequest.getRequester().getUser_id() +
+                                                "&name=" + mRequest.getVehicle().getDriver_name() +
+                                                "&no=" + mRequest.getVehicle().getVehicle_number());
 
                                         Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
                                         mapIntent.putExtra("request", mRequest);
@@ -109,6 +111,23 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vehicle_main);
+
+        FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
+                .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .update("engage", 0)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error updating document", e);
+                    }
+                });
+
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("get"));
@@ -137,7 +156,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void buildAlertMessageNoGps() {
-        if(gpsAlert != null)
+        if (gpsAlert != null)
             return;
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -155,7 +174,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void buildAlertMessageNoInternet() {
-        if(internetAlert != null)
+        if (internetAlert != null)
             return;
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -177,10 +196,9 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(mLocationPermissionGranted){
+                if (mLocationPermissionGranted) {
                     gpsState = true;
-                }
-                else{
+                } else {
                     getLocationPermission();
                 }
             }
@@ -192,7 +210,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
             }
         }
 
-        if(internetState && gpsState)
+        if (internetState && gpsState)
             getVehicleDetails();
         else
             Log.d(TAG, "onActivityResult: Did not switch on the network. Send broadcast from here");
@@ -202,11 +220,10 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onResume() {
         super.onResume();
-        if(isServicesOK()){
-            if(mLocationPermissionGranted && internetState && gpsState){
+        if (isServicesOK()) {
+            if (mLocationPermissionGranted && internetState && gpsState) {
                 getVehicleDetails();
-            }
-            else{
+            } else {
                 getLocationPermission();
             }
         }
@@ -217,8 +234,8 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
     private void checkForRequests() {
         Log.d(TAG, "checkForRequests: called");
 
-        mRequest = ((UserClient)getApplicationContext()).getRequest();
-        if(mRequest != null){
+        mRequest = ((UserClient) getApplicationContext()).getRequest();
+        if (mRequest != null) {
             displayRequestDetails();
         }
 
@@ -233,7 +250,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                             for (QueryDocumentSnapshot document : task.getResult())
                                 if (document.exists()) {
                                     request[0] = document.toObject(Request.class);
-                                    Log.d(TAG, "onComplete: "+request[0].toString());
+                                    Log.d(TAG, "onComplete: " + request[0].toString());
 
                                     if (request[0].getVehicle().getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
                                         mRequest = request[0];
@@ -317,7 +334,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        if(task.getResult().exists()){
+                        if (task.getResult().exists()) {
                             Log.d(TAG, "onComplete: successfully set the requester client.");
                             mVehicle = task.getResult().toObject(Vehicle.class);
                             Log.d(TAG, "Requester inside getUserDetails: " + mVehicle.toString());
@@ -369,22 +386,22 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
     public void display() {
 
-        ((TextView)findViewById(R.id.driver_name)).setText(mVehicle.getDriver_name());
-        ((TextView)findViewById(R.id.contact_no)).setText(mVehicle.getPhone_number());
-        ((TextView)findViewById(R.id.vehicle_no)).setText(mVehicle.getVehicle_number());
-        ((TextView)findViewById(R.id.license_number)).setText(mVehicle.getLicense_number());
+        ((TextView) findViewById(R.id.driver_name)).setText(mVehicle.getDriver_name());
+        ((TextView) findViewById(R.id.contact_no)).setText(mVehicle.getPhone_number());
+        ((TextView) findViewById(R.id.vehicle_no)).setText(mVehicle.getVehicle_number());
+        ((TextView) findViewById(R.id.license_number)).setText(mVehicle.getLicense_number());
 
     }
 
-    public void displayRequestDetails(){
+    public void displayRequestDetails() {
         findViewById(R.id.user_card).setVisibility(View.VISIBLE);
         findViewById(R.id.hospital_card).setVisibility(View.VISIBLE);
         findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
 
-        ((TextView)findViewById(R.id.user_name)).setText(mRequest.getRequester().getName());
-        ((TextView)findViewById(R.id.severity)).setText(Integer.toString(mRequest.getScaleofemergency()));
+        ((TextView) findViewById(R.id.user_name)).setText(mRequest.getRequester().getName());
+        ((TextView) findViewById(R.id.severity)).setText(Integer.toString(mRequest.getScaleofemergency()));
 
-        ((TextView)findViewById(R.id.hospital_name)).setText(mRequest.getHospital().getHospital_name());
+        ((TextView) findViewById(R.id.hospital_name)).setText(mRequest.getHospital().getHospital_name());
     }
 
     private void startLocationService() {
@@ -413,17 +430,26 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.sign_out:{
-                FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                        .update("engage", 2).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        FirebaseAuth.getInstance().signOut();
-                    }
-                });
+        switch (v.getId()) {
+            case R.id.sign_out: {
 
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
+                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .update("engage", 2)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d(TAG, "DocumentSnapshot successfully updated!");
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w(TAG, "Error updating document", e);
+                            }
+                        });
 
+                FirebaseAuth.getInstance().signOut();
                 SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                 editor.remove("type");
                 editor.apply();
@@ -433,8 +459,8 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                     stopService(serviceIntent);
                 }
 
-                ((UserClient)getApplicationContext()).setVehicle(null);
-                ((UserClient)getApplicationContext()).setRequest(null);
+                ((UserClient) getApplicationContext()).setVehicle(null);
+                ((UserClient) getApplicationContext()).setRequest(null);
 
                 Intent intent = new Intent(VehicleMainActivity.this, EntryPoint.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -443,7 +469,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                 break;
             }
 
-            case R.id.look_at_map:{
+            case R.id.look_at_map: {
                 Intent intent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
                 intent.putExtra("request", mRequest);
                 startActivity(intent);
@@ -457,23 +483,23 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         public void onReceive(Context context, Intent arg1) {
 
             boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-            if(isNotConnected){
+            if (isNotConnected) {
                 internetAlert = null;
                 buildAlertMessageNoInternet();
-            }else{
+            } else {
                 internetState = true;
             }
 
 
-            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            final LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 gpsState = true;
-            }else{
+            } else {
                 gpsAlert = null;
                 buildAlertMessageNoGps();
             }
 
-            if(gpsState && internetState)
+            if (gpsState && internetState)
                 getVehicleDetails();
         }
     }

@@ -28,7 +28,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -38,8 +38,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.sql.Timestamp;
 import java.lang.Float;
 import java.util.Objects;
 
@@ -55,7 +53,6 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     //Variables
     private SeekBar mSeek_severity;
-    private int severity;
     private ProgressDialog progress;
     private Requester requester;
 
@@ -75,10 +72,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                 float dist1 = currloc.distanceTo(l1);
                 float dist2 = currloc.distanceTo(l2);
 
-                if (dist1 < dist2)
-                    return 1;
-                else
-                    return 0;
+                return (dist1 < dist2) ? 1 : 0;
             }
         };
         return comp;
@@ -100,10 +94,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                 float dist1 = currloc.distanceTo(l1);
                 float dist2 = currloc.distanceTo(l2);
 
-                if (dist1 < dist2)
-                    return 1;
-                else
-                    return 0;
+                return (dist1 < dist2) ? 1 : 0;
             }
         };
         return comp;
@@ -167,10 +158,10 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
                         Collections.sort(clusters, sortClusters());
 
-                        ArrayList<Vehicle> Available_Vehicles = null;
+                        ArrayList<Vehicle> Available_Vehicles = new ArrayList<>();
 
                         for (Cluster cluster : clusters) {
-                            Available_Vehicles = new ArrayList<Vehicle>();
+                            Available_Vehicles.clear();
 
                             for (Vehicle vehicle : cluster.getVehicles()) {
                                 if (vehicle.getEngage() == 0)
@@ -184,9 +175,11 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
                         Vehicle nearestVehicle;
                         int vehicles_count = Available_Vehicles.size();
-                        if (vehicles_count == 0)
-                            Log.d("Vehicle-count", "no free vehicles");
-                        else {
+                        if (vehicles_count == 0){
+                            Toast.makeText(getApplicationContext(), "All the Vehicles are busy. Please try again later.", Toast.LENGTH_LONG).show();
+                            progress.dismiss();
+
+                        } else {
 
                             Collections.sort(Available_Vehicles, sortVehicles());
 
@@ -266,6 +259,24 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                         @Override
                                                         public void onSuccess(Void aVoid) {
                                                             Log.d(TAG, "onSuccess: Request Stored.");
+
+                                                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles))
+                                                                    .document(nearestVehicle.getUser_id())
+                                                                    .update("engage", 1)
+                                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                        @Override
+                                                                        public void onSuccess(Void aVoid) {
+                                                                            Log.d(TAG, "DocumentSnapshot successfully updated!");
+                                                                        }
+                                                                    })
+                                                                    .addOnFailureListener(new OnFailureListener() {
+                                                                        @Override
+                                                                        public void onFailure(@NonNull Exception e) {
+                                                                            Log.w(TAG, "Error updating document", e);
+                                                                        }
+                                                                    });
+
+
                                                             progress.dismiss();
 
                                                             Intent intent = new Intent(RequestForm.this, RequesterMainActivity.class);

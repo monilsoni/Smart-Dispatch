@@ -1,5 +1,6 @@
 package com.example.smartdispatch_auth.UI;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -41,7 +42,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     String authenticator;
     //widgets
     private EditText mEmail, mPassword, mConfirmPassword, mAadharNumber, mPhoneNumber, mName, mAge, mLicenseNumber, mVehicleNumber;
-    private ProgressBar mProgressBar;
+    private ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +59,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         mPassword = findViewById(R.id.input_password);
         mConfirmPassword = findViewById(R.id.input_confirm_password);
 
-        mProgressBar = findViewById(R.id.progressBar);
+        progress = new ProgressDialog(this);
+        progress.setMessage("Registering...");
+        progress.setCancelable(false);
 
         Intent intent = getIntent();
         authenticator = intent.getStringExtra("user");
@@ -102,6 +105,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     public void registerRequesterNewEmail(final String email, String password, final String aadhar_number, final String phone_number, final String name, final String sex, final String age) {
 
+        progress.show();
         Log.d(TAG, "registerRequesterNewEmail: " + email + aadhar_number);
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -125,7 +129,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                 public void onComplete(@NonNull Task<Void> task) {
 
                                     if (task.isSuccessful()) {
-                                        Utilities.hideDialog(mProgressBar); // Since we're going to change the activity
+
+                                        progress.dismiss();
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         intent.putExtra("authenticator", "requester");
@@ -144,13 +149,14 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         } else {
                             Toast.makeText(RegisterActivity.this, "Something went wrong with registration.", Toast.LENGTH_SHORT).show();
                         }
-                        Utilities.hideDialog(mProgressBar);
+                        progress.dismiss();
                     }
                 });
     }
 
     public void registerHospitalNewEmail(final String email, String password, final String name, final String contactno) {
 
+        progress.show();
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -171,7 +177,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                 public void onComplete(@NonNull Task<Void> task) {
 
                                     if (task.isSuccessful()) {
-                                        Utilities.hideDialog(mProgressBar); // Since we're going to change the activity
+
+                                        progress.dismiss();
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         intent.putExtra("authenticator", "hospital");
@@ -190,13 +197,14 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         } else {
                             Toast.makeText(RegisterActivity.this, "Something went wrong with registration.", Toast.LENGTH_SHORT).show();
                         }
-                        Utilities.hideDialog(mProgressBar);
+                        progress.dismiss();
                     }
                 });
     }
 
     public void registerVehicleNewEmail(final String email, String password, final String aadhar_number, final String phone_number, final String name, final String licenseno, final String age, final String vehicleno) {
 
+        progress.show();
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -216,7 +224,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                 public void onComplete(@NonNull Task<Void> task) {
 
                                     if (task.isSuccessful()) {
-                                        Utilities.hideDialog(mProgressBar); // Since we're going to change the activity
+
+                                        progress.dismiss();
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         intent.putExtra("authenticator", "vehicle");
@@ -235,7 +244,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         } else {
                             Toast.makeText(RegisterActivity.this, "Something went wrong with registration.", Toast.LENGTH_SHORT).show();
                         }
-                        Utilities.hideDialog(mProgressBar);
+                        progress.dismiss();
+
                     }
                 });
     }
@@ -282,7 +292,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                         if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                             Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
-                            Utilities.showDialog(mProgressBar);
+
                             registerRequesterNewEmail(email, password, aadhar_number, phone_number, name, sex, age);
                         } else {
                             Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
@@ -297,7 +307,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
                         else if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                             Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
-                            Utilities.showDialog(mProgressBar);
+
                             registerVehicleNewEmail(email, password, aadhar_number, phone_number, name, licenseno, age, vehicleno);
                         } else {
                             Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
@@ -311,7 +321,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                         Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
                     else if (mPassword.getText().toString().equals(mConfirmPassword.getText().toString())) {
                         Toast.makeText(RegisterActivity.this, "Hello There: Beginning the registration", Toast.LENGTH_SHORT).show();
-                        Utilities.showDialog(mProgressBar);
+
                         registerHospitalNewEmail(email, password, name, phone_number);
                     } else {
                         Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();

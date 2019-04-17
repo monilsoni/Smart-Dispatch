@@ -21,7 +21,10 @@ import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.UI.Hospital.HospitalMapActivity;
 import com.example.smartdispatch_auth.Utils.Utilities;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -108,6 +111,23 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
                                                 String requester_id = request.getRequester().getUser_id();
                                                 String vehicle_id = request.getVehicle().getUser_id();
+
+                                                FirebaseFirestore.getInstance().collection("Vehicles")
+                                                        .document(vehicle_id)
+                                                        .update("engage", 0)
+                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                Log.d(TAG, "DocumentSnapshot successfully updated!");
+                                                            }
+                                                        })
+                                                        .addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Log.w(TAG, "Error updating document", e);
+                                                            }
+                                                        });
+
 
                                                 Log.d(TAG, "onComplete: " + requester_id.toString() + "\n" + vehicle_id.toString());
 

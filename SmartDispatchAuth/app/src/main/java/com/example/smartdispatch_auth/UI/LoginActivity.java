@@ -48,8 +48,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.activity_login);
 
         progress = new ProgressDialog(this);
-        progress.setTitle("Loading");
-        progress.setMessage("Logging In");
+        progress.setMessage("Logging in...");
         progress.setCancelable(false);
 
         mEmail = findViewById(R.id.email);
