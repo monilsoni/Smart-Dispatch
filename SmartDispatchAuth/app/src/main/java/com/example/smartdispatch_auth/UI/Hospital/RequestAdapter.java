@@ -32,7 +32,6 @@ import java.util.List;
 public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestViewHolder> {
 
     private static final String TAG = "RequestAdapter";
-    private CardView cardview;
     private Context context;
     private List<RequestDisp> requestList;
     private List<Request> requests;
@@ -52,18 +51,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
         LayoutInflater layoutInflater = LayoutInflater.from(viewGroup.getContext());
         View view = layoutInflater.inflate(R.layout.request_card, null);
-        //cardview = viewGroup.findViewById(R.id.card_view);
         final RequestViewHolder requestViewHolder = new RequestViewHolder(view);
-        /*view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, HospitalMapActivity.class);
-                intent.putExtra("request", requests.get(i));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                Log.d(TAG, "onClick: " + requests.get(i).toString());
-                context.startActivity(intent);
-            }
-        });*/
         return requestViewHolder;
     }
 

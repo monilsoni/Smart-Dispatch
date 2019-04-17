@@ -220,9 +220,6 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         mRequest = ((UserClient)getApplicationContext()).getRequest();
         if(mRequest != null){
             displayRequestDetails();
-            Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
-            mapIntent.putExtra("request", mRequest);
-            startActivity(mapIntent);
         }
 
 
@@ -243,10 +240,6 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
 
                                         displayRequestDetails();
                                         ((UserClient) getApplicationContext()).setRequest(mRequest);
-
-                                        Intent mapIntent = new Intent(VehicleMainActivity.this, VehicleMapActivity.class);
-                                        mapIntent.putExtra("request", mRequest);
-                                        startActivity(mapIntent);
                                         return;
                                     }
                                 }
