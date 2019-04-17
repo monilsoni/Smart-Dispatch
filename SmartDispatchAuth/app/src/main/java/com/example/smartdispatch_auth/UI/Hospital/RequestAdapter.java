@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,7 +52,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
         LayoutInflater layoutInflater = LayoutInflater.from(viewGroup.getContext());
         View view = layoutInflater.inflate(R.layout.request_card, null);
-        cardView = viewGroup.findViewById(R.id.cardView);
+        cardview = viewGroup.findViewById(R.id.card_view);
         final RequestViewHolder requestViewHolder = new RequestViewHolder(view);
         return requestViewHolder;
     }
@@ -70,7 +71,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.RequestV
 
         final int k = i;
         
-        cardView.setOnClickListener(new View.OnClickListener() {
+        cardview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, HospitalMapActivity.class);

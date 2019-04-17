@@ -173,7 +173,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                             Available_Vehicles = new ArrayList<Vehicle>();
 
                             for (Vehicle vehicle : cluster.getVehicles()) {
-                                if (vehicle.getEngage() == 0)
+                                if (vehicle.getEngage() == 0 && vehicle.getToken()!=null)
                                     Available_Vehicles.add(vehicle);
                             }
                             if (Available_Vehicles.size() > 0)
@@ -221,7 +221,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                 l1.setLongitude(h.getGeoPoint().getLatitude());
                                                 l1.setLongitude(h.getGeoPoint().getLongitude());
 
-                                                if (temp >= currloc.distanceTo(l1)) {
+                                                if (temp >= currloc.distanceTo(l1) && nearestHospital.getToken()!=null) {
                                                     temp = currloc.distanceTo(l1);
                                                     nearestHospital = h;
                                                 }

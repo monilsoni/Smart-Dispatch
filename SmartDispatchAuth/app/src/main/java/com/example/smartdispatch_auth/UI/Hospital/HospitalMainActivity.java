@@ -54,16 +54,14 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     // todo: add internet check
     private static final String TAG = "HospitalMainActivity";
-
+    IntentFilter filter;
+    ProgressDialog progress;
     // vars
     private boolean mLocationPermissionGranted = false;
-    private boolean internetState =false, gpsState = false;
+    private boolean internetState = false, gpsState = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Hospital mHospital;
     private AlertDialog internetAlert, gpsAlert;
-    IntentFilter filter;
-
-    ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,40 +87,13 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     }
 
-
-    public class CheckConnectivity extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent arg1) {
-
-            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-            if(isNotConnected){
-                internetAlert = null;
-                buildAlertMessageNoInternet();
-            }else{
-                internetState = true;
-            }
-
-
-            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                gpsState = true;
-            }else{
-                gpsAlert = null;
-                buildAlertMessageNoGps();
-            }
-
-            if(gpsState && internetState)
-                getHospitalDetails();
-        }
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
     }
 
     private void buildAlertMessageNoGps() {
-        if(gpsAlert != null)
+        if (gpsAlert != null)
             return;
 
         final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
@@ -140,7 +111,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void buildAlertMessageNoInternet() {
-        if(internetAlert != null)
+        if (internetAlert != null)
             return;
 
         final android.support.v7.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -162,10 +133,9 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(mLocationPermissionGranted){
+                if (mLocationPermissionGranted) {
                     gpsState = true;
-                }
-                else{
+                } else {
                     getLocationPermission();
                 }
             }
@@ -177,7 +147,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
             }
         }
 
-        if(internetState && gpsState)
+        if (internetState && gpsState)
             getHospitalDetails();
         else
             Log.d(TAG, "onActivityResult: Did not switch on the network. Send broadcast from here");
@@ -191,11 +161,10 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         editor.putString("name", "hospital_main");
         editor.apply();
 
-        if(isServicesOK()){
-            if(mLocationPermissionGranted && internetState && gpsState){
+        if (isServicesOK()) {
+            if (mLocationPermissionGranted && internetState && gpsState) {
                 getHospitalDetails();
-            }
-            else{
+            } else {
                 getLocationPermission();
             }
         }
@@ -268,7 +237,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        if(task.getResult().exists()){
+                        if (task.getResult().exists()) {
 
                             mHospital = task.getResult().toObject(Hospital.class);
                             Log.d(TAG, "Hospital inside getHospitalDetails: " + mHospital.toString());
@@ -303,7 +272,7 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
                     Location mLocation = task.getResult();
                     GeoPoint geoPoint = (mLocation != null) ?
-                            new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude()) : new GeoPoint(0 ,0);
+                            new GeoPoint(mLocation.getLatitude(), mLocation.getLongitude()) : new GeoPoint(0, 0);
 
                     mHospital.setGeoPoint(geoPoint);
                     startLocationService();
@@ -317,13 +286,11 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     public void display() {
 
         Log.d(TAG, "display: name: " + mHospital.getHospital_name());
-        ((TextView)findViewById(R.id.hospital_name)).setText(mHospital.getHospital_name());
-        ((TextView)findViewById(R.id.hospital_contact)).setText(mHospital.getContactno());
+        ((TextView) findViewById(R.id.hospital_name)).setText(mHospital.getHospital_name());
+        ((TextView) findViewById(R.id.hospital_contact)).setText(mHospital.getContactno());
         progress.dismiss();
 
     }
-
-    /*  GPS Service  */
 
     private void startLocationService() {
         if (!isLocationServiceRunning()) {
@@ -337,6 +304,8 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    /*  GPS Service  */
+
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -349,30 +318,66 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         return false;
     }
 
-
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.current_request){
+        if (v.getId() == R.id.current_request) {
             Intent intent = new Intent(HospitalMainActivity.this, HospitalCurrentRequestActivity.class);
             startActivity(intent);
-        }else if(v.getId() == R.id.sign_out){
-            FirebaseAuth.getInstance().signOut();
+        } else if (v.getId() == R.id.sign_out) {
+            FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    FirebaseAuth.getInstance().signOut();
+                }
+            });
 
             SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
             editor.remove("type");
             editor.apply();
 
-            ((UserClient)getApplicationContext()).setHospital(null);
-            ((UserClient)getApplicationContext()).setRequest(null);
+            if (isLocationServiceRunning()) {
+                Intent serviceIntent = new Intent(this, LocationService.class);
+                stopService(serviceIntent);
+            }
+
+            ((UserClient) getApplicationContext()).setHospital(null);
+            ((UserClient) getApplicationContext()).setRequest(null);
 
             Intent intent = new Intent(HospitalMainActivity.this, EntryPoint.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
-        }else{
+        } else {
             Toast.makeText(HospitalMainActivity.this, "Youzaa", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public class CheckConnectivity extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+
+            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+            if (isNotConnected) {
+                internetAlert = null;
+                buildAlertMessageNoInternet();
+            } else {
+                internetState = true;
+            }
+
+
+            final LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                gpsState = true;
+            } else {
+                gpsAlert = null;
+                buildAlertMessageNoGps();
+            }
+
+            if (gpsState && internetState)
+                getHospitalDetails();
+        }
     }
 
 }

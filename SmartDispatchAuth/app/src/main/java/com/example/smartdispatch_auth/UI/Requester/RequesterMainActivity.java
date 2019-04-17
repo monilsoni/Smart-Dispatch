@@ -56,18 +56,34 @@ import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABL
 public class RequesterMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "RequesterMainActivity";
-
+    Source source = Source.DEFAULT;
+    ProgressDialog progress;
     // Android widgets
     private TextView mWelcomeText, mAadharText, mPhoneText;
-
     // Variables
     private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Requester mRequester;
     private Request mRequest = null;
+    private BroadcastReceiver mEndedRequest = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
+            findViewById(R.id.look_at_map).setVisibility(View.GONE);
+            ((UserClient) getApplicationContext()).setRequest(null);
 
-    Source source = Source.DEFAULT;
-    ProgressDialog progress;
+            findViewById(R.id.submit_request).setVisibility(View.VISIBLE);
+        }
+    };
+    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mRequest = ((UserClient)getApplicationContext()).getRequest();
+            mRequest.setVehiclereached(1);
+            ((UserClient)getApplicationContext()).setRequest(mRequest);
+        }
+
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,27 +113,6 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                 mEndedRequest, new IntentFilter("r_request_ended")
         );
     }
-
-    private BroadcastReceiver mEndedRequest = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            findViewById(R.id.vehicle_layout).setVisibility(View.GONE);
-            findViewById(R.id.look_at_map).setVisibility(View.GONE);
-            ((UserClient) getApplicationContext()).setRequest(null);
-
-            findViewById(R.id.submit_request).setVisibility(View.VISIBLE);
-        }
-    };
-
-    private BroadcastReceiver vehicleReached = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mRequest = ((UserClient)getApplicationContext()).getRequest();
-            mRequest.setVehiclereached(1);
-            ((UserClient)getApplicationContext()).setRequest(mRequest);
-        }
-
-    };
 
     @Override
     protected void onResume() {
@@ -383,11 +378,23 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_out: {
-                FirebaseAuth.getInstance().signOut();
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        FirebaseAuth.getInstance().signOut();
+                    }
+                });
+
 
                 SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                 editor.remove("type");
                 editor.apply();
+
+                if (isLocationServiceRunning()) {
+                    Intent serviceIntent = new Intent(this, LocationService.class);
+                    stopService(serviceIntent);
+                }
 
                 ((UserClient) getApplicationContext()).setRequester(null);
                 ((UserClient) getApplicationContext()).setRequest(null);

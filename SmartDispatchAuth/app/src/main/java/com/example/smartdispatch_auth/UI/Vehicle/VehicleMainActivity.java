@@ -59,44 +59,15 @@ import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABL
 public class VehicleMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "VehicleMainActivity";
-
+    Source source = Source.DEFAULT;
+    ProgressDialog progress;
+    IntentFilter filter;
     private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private Vehicle mVehicle;
     private Request mRequest;
     private boolean internetState =false, gpsState = false;
-    Source source = Source.DEFAULT;
-    ProgressDialog progress;
     private AlertDialog internetAlert, gpsAlert;
-    IntentFilter filter;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_vehicle_main);
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("get"));
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        findViewById(R.id.sign_out).setOnClickListener(this);
-        findViewById(R.id.look_at_map).setOnClickListener(this);
-
-        progress = new ProgressDialog(this);
-        progress.setMessage("Loading your data");
-        progress.setCancelable(false);
-
-        filter = new IntentFilter();
-        filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
-        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        filter.addAction(LocationManager.MODE_CHANGED_ACTION);
-        filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
-        this.registerReceiver(new CheckConnectivity(), filter);
-
-    }
-
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -134,30 +105,30 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         }
     };
 
-    public class CheckConnectivity extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent arg1) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_vehicle_main);
 
-            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-            if(isNotConnected){
-                internetAlert = null;
-                buildAlertMessageNoInternet();
-            }else{
-                internetState = true;
-            }
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("get"));
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                gpsState = true;
-            }else{
-                gpsAlert = null;
-                buildAlertMessageNoGps();
-            }
+        findViewById(R.id.sign_out).setOnClickListener(this);
+        findViewById(R.id.look_at_map).setOnClickListener(this);
 
-            if(gpsState && internetState)
-                getVehicleDetails();
-        }
+        progress = new ProgressDialog(this);
+        progress.setMessage("Loading your data");
+        progress.setCancelable(false);
+
+        filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(LocationManager.MODE_CHANGED_ACTION);
+        filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
+        this.registerReceiver(new CheckConnectivity(), filter);
+
     }
 
     @Override
@@ -340,7 +311,6 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-
     /* UI stuff */
     private void getVehicleDetails() {
 
@@ -448,16 +418,27 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         return false;
     }
 
-
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.sign_out:{
-                FirebaseAuth.getInstance().signOut();
+                FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        FirebaseAuth.getInstance().signOut();
+                    }
+                });
+
 
                 SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                 editor.remove("type");
                 editor.apply();
+
+                if (isLocationServiceRunning()) {
+                    Intent serviceIntent = new Intent(this, LocationService.class);
+                    stopService(serviceIntent);
+                }
 
                 ((UserClient)getApplicationContext()).setVehicle(null);
                 ((UserClient)getApplicationContext()).setRequest(null);
@@ -475,6 +456,32 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
                 startActivity(intent);
                 break;
             }
+        }
+    }
+
+    public class CheckConnectivity extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent arg1) {
+
+            boolean isNotConnected = arg1.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+            if(isNotConnected){
+                internetAlert = null;
+                buildAlertMessageNoInternet();
+            }else{
+                internetState = true;
+            }
+
+
+            final LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                gpsState = true;
+            }else{
+                gpsAlert = null;
+                buildAlertMessageNoGps();
+            }
+
+            if(gpsState && internetState)
+                getVehicleDetails();
         }
     }
 

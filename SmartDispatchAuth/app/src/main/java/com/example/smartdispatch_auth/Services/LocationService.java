@@ -50,6 +50,7 @@ public class LocationService extends Service {
     private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
     private FusedLocationProviderClient mFusedLocationClient;
     private String authenticator;
+    private LocationCallback mLocationCallback;
 
     @Nullable
     @Override
@@ -105,7 +106,7 @@ public class LocationService extends Service {
         }
         Log.d(TAG, "getLocation: getting location information.");
 
-        mFusedLocationClient.requestLocationUpdates(mLocationRequestHighAccuracy, new LocationCallback() {
+        mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
 
@@ -119,62 +120,72 @@ public class LocationService extends Service {
                     SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
                     authenticator = prefs.getString("type", null);
                     if (authenticator != null) {
-                        if(authenticator.equals("requester")){
-                            Requester requester = ((UserClient)(getApplicationContext())).getRequester();
-                            if(requester != null){
-                                requester.setGeoPoint(geoPoint);
-                                saveUserLocation(requester);
-                            }
-                        }else if(authenticator.equals("vehicle")){
-                            Vehicle vehicle = ((UserClient)(getApplicationContext())).getVehicle();
-                            if(vehicle != null){
-                                vehicle.setGeoPoint(geoPoint);
-                                saveUserLocation(vehicle);
-                            }
-                        }else{
-                            Hospital hospital = ((UserClient)(getApplicationContext())).getHospital();
-                            if(hospital != null){
-                                hospital.setGeoPoint(geoPoint);
-                                saveUserLocation(hospital);
-                            }
+                        switch (authenticator) {
+                            case "requester":
+                                Requester requester = ((UserClient) (getApplicationContext())).getRequester();
+                                if (requester != null) {
+                                    requester.setGeoPoint(geoPoint);
+                                    saveUserLocation(requester);
+                                }
+                                break;
+                            case "vehicle":
+                                Vehicle vehicle = ((UserClient) (getApplicationContext())).getVehicle();
+                                if (vehicle != null) {
+                                    vehicle.setGeoPoint(geoPoint);
+                                    saveUserLocation(vehicle);
+                                }
+                                break;
+                            case "hospital":
+                                Hospital hospital = ((UserClient) (getApplicationContext())).getHospital();
+                                if (hospital != null) {
+                                    hospital.setGeoPoint(geoPoint);
+                                    saveUserLocation(hospital);
+                                }
+                                break;
                         }
-                            
+
                     }
 
-                    
+
                 }
             }
-        }, Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
+        };
+
+        mFusedLocationClient.requestLocationUpdates(mLocationRequestHighAccuracy, mLocationCallback, Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-    private void saveUserLocation(final User user){
+    private void saveUserLocation(final User user) {
 
-        try{
-            if(FirebaseAuth.getInstance().getCurrentUser() == null)
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() == null)
                 return;
 
             DocumentReference locationRef = null;
 
-            if(authenticator.equals("requester")){
-                locationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_users))
-                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            switch (authenticator) {
+                case "requester":
+                    locationRef = FirebaseFirestore.getInstance()
+                            .collection(getString(R.string.collection_users))
+                            .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-            }else if(authenticator.equals("vehicle")){
-                locationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_vehicles))
-                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    break;
+                case "vehicle":
+                    locationRef = FirebaseFirestore.getInstance()
+                            .collection(getString(R.string.collection_vehicles))
+                            .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-            }else{
-                locationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_hospitals))
-                        .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    break;
+                case "hospital":
+                    locationRef = FirebaseFirestore.getInstance()
+                            .collection(getString(R.string.collection_hospitals))
+                            .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    break;
             }
 
             locationRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "onComplete: \ninserted user location into database." +
                                 "\n latitude: " + user.getGeoPoint().getLatitude() +
                                 "\n longitude: " + user.getGeoPoint().getLongitude());
@@ -183,12 +194,20 @@ public class LocationService extends Service {
             });
 
 
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Log.e(TAG, "saveUserLocation: User instance is null, stopping location service.");
-            Log.e(TAG, "saveUserLocation: NullPointerException: "  + e.getMessage() );
+            Log.e(TAG, "saveUserLocation: NullPointerException: " + e.getMessage());
             stopSelf();
         }
 
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        if(mFusedLocationClient != null)
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+
+        stopSelf();
+    }
 }
