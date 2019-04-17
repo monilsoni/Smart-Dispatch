@@ -143,36 +143,10 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/reqNameLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:layout_below="@id/idLayout">
-
-                    <TextView
-                        android:id="@+id/name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="13dp"
-                        android:text="Requester Name : "
-                        android:textColor="@color/ColorSecondary"/>
-
-                    <TextView
-                        android:id="@+id/requesterID"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:paddingHorizontal="5dp"
-                        android:textSize="13dp"
-                        android:textColor="@color/colorPrimaryLight"
-                        android:layout_toRightOf="@id/name"/>
-
-                </RelativeLayout>
-
             </RelativeLayout>
 
             <Button
+                android:id="@+id/assign_vehicle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/light_button_background"

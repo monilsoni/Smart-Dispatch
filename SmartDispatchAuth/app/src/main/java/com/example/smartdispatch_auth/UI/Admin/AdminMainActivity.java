@@ -3,6 +3,7 @@ package com.example.smartdispatch_auth.UI.Admin;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
@@ -17,10 +18,12 @@ import com.example.smartdispatch_auth.Models.Cluster;
 import com.example.smartdispatch_auth.Models.SMSRequest;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.Models.ClusterFetch;
+import com.example.smartdispatch_auth.Constants;
 import com.example.smartdispatch_auth.R;
 import com.example.smartdispatch_auth.Services.SMSBroadcastReceiver;
 import com.example.smartdispatch_auth.UI.LoginActivity;
 import com.example.smartdispatch_auth.UI.RegisterActivity;
+import com.example.smartdispatch_auth.Utils.AppSignatureHashHelper;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -39,6 +42,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import static com.example.smartdispatch_auth.Constants.MY_APP_HASH;
+
 public class AdminMainActivity extends AppCompatActivity implements View.OnClickListener, SMSBroadcastReceiver.REQReceiveListener{
 
     private final static String TAG = "AdminMainActivity";
@@ -55,10 +60,19 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         findViewById(R.id.allocateVehicle).setOnClickListener(this);
         findViewById(R.id.current_request).setOnClickListener(this);
         findViewById(R.id.request_history).setOnClickListener(this);
+        findViewById(R.id.sosButton).setOnClickListener(this);
 
         progress = new ProgressDialog(this);
         progress.setMessage("Creating clusters and assigning vehicles...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
+
+        //keep this
+
+        //AppSignatureHashHelper appSignatureHashHelper = new AppSignatureHashHelper(this);
+        // This code requires one time to get Hash keys do comment and share key
+        //MY_APP_HASH =
+        //Log.d(TAG, "Apps Hash Key: " + appSignatureHashHelper.getAppSignatures().get(0));
 
         startsmslistner();
 
@@ -132,6 +146,12 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
 
             case R.id.request_history: {
                 Intent intent = new Intent(AdminMainActivity.this, AdminRequestHistory.class);
+                startActivity(intent);
+                break;
+            }
+
+            case R.id.sosButton: {
+                Intent intent = new Intent(AdminMainActivity.this, AdminOfflineActivity.class);
                 startActivity(intent);
                 break;
             }
@@ -232,7 +252,7 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
         //t_type.setText(req);
 
         if (smsbroadcast != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(smsbroadcast);
+            this.unregisterReceiver(smsbroadcast);
         }
 
     }
@@ -250,18 +270,27 @@ public class AdminMainActivity extends AppCompatActivity implements View.OnClick
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (smsbroadcast != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(smsbroadcast);
-        }
     }
 
     private void Parserequest(String req) {
 
-        String data[] = req.split("\\n");
+        SharedPreferences prefs = getSharedPreferences("activity", MODE_PRIVATE);
+        if(prefs.getString("name", null).equals("Admin_main")) {
+            String data[] = req.split("\\n");
 
-        // Todo: where is this used?
-        SMSRequest request = new SMSRequest(data[1],data[2],data[3],data[4],data[5]);
+            SMSRequest request = new SMSRequest(data[1], data[2], data[3], data[4], data[5]);
 
+            Log.d(TAG, request.toString());
+            FirebaseFirestore.getInstance().collection(getString(R.string.collection_offline_request)).add(request);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences.Editor editor = getSharedPreferences("activity", MODE_PRIVATE).edit();
+        editor.putString("name", "Admin_main");
+        editor.apply();
     }
 
 

@@ -157,9 +157,6 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences.Editor editor = getSharedPreferences("activity", MODE_PRIVATE).edit();
-        editor.putString("name", "hospital_main");
-        editor.apply();
 
         if (isServicesOK()) {
             if (mLocationPermissionGranted && internetState && gpsState) {

@@ -43,6 +43,7 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
     RequestAdapter adapter;
     int recurrentRead = 0;
     TextView emptyListMessage;
+    boolean isRunning = false;
 
     // widgets
     ProgressDialog progress;
@@ -69,10 +70,8 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            SharedPreferences prefs = getSharedPreferences("activity", MODE_PRIVATE);
-            if(prefs.getString("name", null).equals("hospital_current")){
+            if(isRunning)
                 updateUI();
-            }
         }
 
     };
@@ -101,12 +100,20 @@ public class HospitalCurrentRequestActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        isRunning = true;
+
         emptyListMessage.setVisibility(View.INVISIBLE);
         SharedPreferences.Editor editor = getSharedPreferences("activity", MODE_PRIVATE).edit();
         editor.putString("name", "hospital_current");
         editor.apply();
 
         updateUI();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isRunning = false;
     }
 
     private void updateList() {

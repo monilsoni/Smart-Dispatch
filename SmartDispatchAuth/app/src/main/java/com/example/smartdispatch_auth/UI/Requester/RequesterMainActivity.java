@@ -85,6 +85,8 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
 
     };
 
+    private String offlineReqVehicleContactNo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,10 +119,12 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     @Override
     protected void onResume() {
         super.onResume();
-        if (!Utilities.checkInternetConnectivity(this))
+        if (!Utilities.checkInternetConnectivity(this)){
             source = Source.CACHE;
-        else
+            setRequestData();
+        }else{
             source = Source.DEFAULT;
+        }
 
         checkForRequests();
 
@@ -131,6 +135,20 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
                 getLocationPermission();
             }
         }
+    }
+
+    private void setRequestData() {
+        SharedPreferences preferences = getSharedPreferences("smsrequest", MODE_PRIVATE);
+        String req = preferences.getString("requestString", "");
+        findViewById(R.id.vehicle_card).setVisibility(View.VISIBLE);
+        findViewById(R.id.submit_request).setVisibility(View.GONE);
+
+        String reqdetails[] = req.split("\\n");
+        offlineReqVehicleContactNo = reqdetails[3];
+
+        ((TextView)findViewById(R.id.driver_name)).setText(reqdetails[1]);
+        ((TextView)findViewById(R.id.vehicle_number)).setText(reqdetails[2]);
+
     }
 
     private void checkForRequests() {
@@ -338,7 +356,8 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     public void displayVehicle() {
         Log.d(TAG, "displayVehicle: ");
         findViewById(R.id.vehicle_card).setVisibility(View.VISIBLE);
-        findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
+        if(Utilities.checkInternetConnectivity(this))
+            findViewById(R.id.look_at_map).setVisibility(View.VISIBLE);
 
         findViewById(R.id.submit_request).setVisibility(View.GONE);
 
@@ -414,7 +433,11 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
             }
 
             case R.id.driver_phone: {
-                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mRequest.getVehicle().getPhone_number()));
+                Intent intent;
+                if(Utilities.checkInternetConnectivity(this))
+                    intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mRequest.getVehicle().getPhone_number()));
+                else
+                    intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + offlineReqVehicleContactNo));
                 startActivity(intent);
             }
         }

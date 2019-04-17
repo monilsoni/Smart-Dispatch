@@ -3,10 +3,13 @@ package com.example.smartdispatch_auth.UI.Requester;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -22,8 +25,12 @@ import com.example.smartdispatch_auth.Models.Request;
 import com.example.smartdispatch_auth.Models.Requester;
 import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
+import com.example.smartdispatch_auth.Services.SMSBroadcastReceiver;
 import com.example.smartdispatch_auth.UserClient;
+import com.example.smartdispatch_auth.Utils.AppSignatureHashHelper;
 import com.example.smartdispatch_auth.Utils.Utilities;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -41,10 +48,12 @@ import java.util.Comparator;
 import java.lang.Float;
 import java.util.Objects;
 
+import static com.example.smartdispatch_auth.Constants.MY_APP_HASH;
+import static com.example.smartdispatch_auth.Constants.MY_PERMISSIONS_PHONE_STATE;
 import static com.example.smartdispatch_auth.Constants.MY_PERMISSIONS_REQUEST_SEND_SMS;
 
 
-public class RequestForm extends AppCompatActivity implements View.OnClickListener {
+public class RequestForm extends AppCompatActivity implements View.OnClickListener, SMSBroadcastReceiver.REQReceiveListener {
 
     private static final String TAG = "RequestForm";
     private static Location currloc;
@@ -55,6 +64,10 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
     private SeekBar mSeek_severity;
     private ProgressDialog progress;
     private Requester requester;
+
+    private SMSBroadcastReceiver smsbroadcast;
+
+    private boolean mSMSpermissiongranted = false, mPhoneStatePermissionGranted = false;
 
     public static Comparator<Cluster> sortClusters() {
         Comparator comp = new Comparator<Cluster>() {
@@ -122,7 +135,43 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         currloc = new Location("");
         currloc.setLongitude(requester.getGeoPoint().getLongitude());
         currloc.setLatitude(requester.getGeoPoint().getLatitude());
+
+        startsmslistner();
     }
+
+    private void startsmslistner() {
+
+        try {
+            smsbroadcast = new SMSBroadcastReceiver();
+            smsbroadcast.setREQListener(this);
+
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(SmsRetriever.SMS_RETRIEVED_ACTION);
+            this.registerReceiver(smsbroadcast, intentFilter);
+
+            SmsRetrieverClient client = SmsRetriever.getClient(this);
+
+            Task<Void> task = client.startSmsRetriever();
+            task.addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // API successfully started
+                    //showToast("Listening");
+                }
+            });
+
+            task.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    // Fail to start API
+                    //showToast("Not Listening");
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void onClick(View v) {
@@ -133,7 +182,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
             }
 
             case R.id.sendSMSButton: {
-                onclickSendSmS();
+                sendSMS();
                 break;
             }
 
@@ -312,69 +361,37 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
     }
 
-    public void onclickSendSmS() {
-
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.SEND_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.SEND_SMS)) {
-
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.SEND_SMS},
-                        MY_PERMISSIONS_REQUEST_SEND_SMS);
-
-            }
-        } else
-            sendSMS();
-
-    }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    sendSMS();
-                } else {
-
-                    return;
-                }
-            }
-        }
-
-    }
-
     public void sendSMS() {
         String typeofemergency = "";
-        if (mChkbox_medical.isChecked())
+        if (mChkbox_medical.isChecked()) {
+            if (!Objects.equals(typeofemergency, ""))
+                typeofemergency += ",";
             typeofemergency += "Medical ";
-        if (mChkbox_fire.isChecked())
+        }
+
+        if (mChkbox_fire.isChecked()) {
+            if (!Objects.equals(typeofemergency, ""))
+                typeofemergency += ",";
             typeofemergency += "Fire ";
-        if (mChkbox_other.isChecked())
+        }
+
+        if (mChkbox_other.isChecked()) {
+            if (!Objects.equals(typeofemergency, ""))
+                typeofemergency += ",";
             typeofemergency += "Other";
+        }
 
         int scaleofemergency = mSeek_severity.getProgress();
 
-        double latitude = 23.56, longitude = 26.56;
-        GeoPoint location = new GeoPoint(latitude, longitude);
 
-        String vehicleid = "1";
-
-        String hospitalid = "2";
-
-        String message = "<#>" + "\n" + typeofemergency + "\n" + scaleofemergency + "\n" + location.getLatitude()
-                + "\n" + location.getLongitude() + "\n" + vehicleid + "\n" + hospitalid + "\n" + requester.getEmail() + "\n" + "MamEVHTp4dw";
+        String message = "<#>" + "\n" + typeofemergency + "\n" + scaleofemergency + "\n" + requester.getGeoPoint().getLatitude()
+                + "\n" + requester.getGeoPoint().getLongitude() + "\n" + requester.getUser_id() + "\n" + MY_APP_HASH;
 
         SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage("8347747701", null, message, null, null);
+        smsManager.sendTextMessage("8140114421", null, message, null, null);
         showToast("SMS sent");
     }
+
 
     private void showToast(String msg) {
         Toast.makeText(RequestForm.this, msg, Toast.LENGTH_LONG).show();
@@ -388,5 +405,115 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
         } else {
             findViewById(R.id.sendrequestButton).setVisibility(View.GONE);
         }
+
+        if(!mSMSpermissiongranted)
+            getSMSPermission();
+
+        if(!mPhoneStatePermissionGranted)
+            getPhoneStatePermission();
     }
+
+    @Override
+    public void onREQReceived(String req) {
+
+        Log.d(TAG, "onREQReceived: " + req);
+        Parserequest(req);
+        if (smsbroadcast != null) {
+            this.unregisterReceiver(smsbroadcast);
+        }
+
+    }
+
+    @Override
+    public void onREQTimeOut() {
+        //showToast("REQ Time out");
+    }
+
+    @Override
+    public void onREQReceivedError(String error) {
+        //showToast(error);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (smsbroadcast != null) {
+
+        }
+    }
+
+    private void Parserequest(String req) {
+
+        Intent intent = new Intent(RequestForm.this, RequesterMainActivity.class);
+        SharedPreferences.Editor editor = getSharedPreferences("smsrequest", MODE_PRIVATE).edit();
+        editor.putString("requestString", req);
+        editor.apply();
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+
+    }
+
+    private void getSMSPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                Manifest.permission.SEND_SMS)
+                == PackageManager.PERMISSION_GRANTED) {
+            mSMSpermissiongranted = true;
+
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.SEND_SMS},
+                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+    }
+
+    private void getPhoneStatePermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                Manifest.permission.READ_PHONE_STATE)
+                == PackageManager.PERMISSION_GRANTED) {
+            mPhoneStatePermissionGranted = true;
+
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    MY_PERMISSIONS_PHONE_STATE);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                mSMSpermissiongranted = false;
+
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mSMSpermissiongranted = true;
+                }
+            }
+
+            case MY_PERMISSIONS_PHONE_STATE: {
+                mPhoneStatePermissionGranted = false;
+
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mSMSpermissiongranted = true;
+                }
+            }
+        }
+    }
+
 }
