@@ -145,8 +145,6 @@ public class LocationService extends Service {
                         }
 
                     }
-
-
                 }
             }
         };
@@ -205,7 +203,7 @@ public class LocationService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        if(mFusedLocationClient != null)
+        if (mFusedLocationClient != null)
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
 
         stopSelf();

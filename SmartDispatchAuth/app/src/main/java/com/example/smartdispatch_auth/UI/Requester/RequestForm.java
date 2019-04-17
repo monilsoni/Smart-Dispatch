@@ -173,7 +173,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                             Available_Vehicles = new ArrayList<Vehicle>();
 
                             for (Vehicle vehicle : cluster.getVehicles()) {
-                                if (vehicle.getEngage() == 0 && vehicle.getToken()!=null)
+                                if (vehicle.getEngage() == 0)
                                     Available_Vehicles.add(vehicle);
                             }
                             if (Available_Vehicles.size() > 0)
@@ -207,7 +207,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
 
                             FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).get()
                                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                        float temp = Float.MAX_VALUE;
+                                           float temp = Float.MAX_VALUE;
 
                                         @Override
                                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -221,7 +221,7 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                 l1.setLongitude(h.getGeoPoint().getLatitude());
                                                 l1.setLongitude(h.getGeoPoint().getLongitude());
 
-                                                if (temp >= currloc.distanceTo(l1) && nearestHospital.getToken()!=null) {
+                                                if (h.getUser_id() != null && temp >= currloc.distanceTo(l1) && h.getToken()!=null) {
                                                     temp = currloc.distanceTo(l1);
                                                     nearestHospital = h;
                                                 }
@@ -258,6 +258,8 @@ public class RequestForm extends AppCompatActivity implements View.OnClickListen
                                                     requester.getUser_id()
                                             );
 
+
+                                            Log.d(TAG, "onComplete: Request: " + request.toString());
 
                                             FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).document(requester.getUser_id()).set(request)
                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {

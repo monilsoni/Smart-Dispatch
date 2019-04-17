@@ -65,9 +65,11 @@ public class RequestNotification extends FirebaseMessagingService {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentInfo("Info");
 
+        if(FirebaseAuth.getInstance().getCurrentUser() == null)
+            stopSelf();
+
         SharedPreferences prefs = getSharedPreferences("user", MODE_PRIVATE);
         authenticator = prefs.getString("type", null);
-
 
         switch (hashMap.get("user")) {
             case "hospital":

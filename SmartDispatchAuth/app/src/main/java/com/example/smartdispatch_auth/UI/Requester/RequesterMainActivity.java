@@ -378,14 +378,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_out: {
-                FirebaseFirestore.getInstance().collection(getString(R.string.collection_request)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                        .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        FirebaseAuth.getInstance().signOut();
-                    }
-                });
-
+                FirebaseAuth.getInstance().signOut();
 
                 SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                 editor.remove("type");

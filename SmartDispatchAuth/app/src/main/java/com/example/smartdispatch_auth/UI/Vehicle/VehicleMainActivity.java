@@ -423,7 +423,7 @@ public class VehicleMainActivity extends AppCompatActivity implements View.OnCli
         switch (v.getId()){
             case R.id.sign_out:{
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_vehicles)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                        .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        .update("engage", 2).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         FirebaseAuth.getInstance().signOut();

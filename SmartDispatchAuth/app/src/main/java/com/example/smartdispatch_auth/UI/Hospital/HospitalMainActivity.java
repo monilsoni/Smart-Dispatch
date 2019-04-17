@@ -324,14 +324,8 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
             Intent intent = new Intent(HospitalMainActivity.this, HospitalCurrentRequestActivity.class);
             startActivity(intent);
         } else if (v.getId() == R.id.sign_out) {
-            FirebaseFirestore.getInstance().collection(getString(R.string.collection_hospitals)).document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .update("token", null).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    FirebaseAuth.getInstance().signOut();
-                }
-            });
 
+            FirebaseAuth.getInstance().signOut();
             SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
             editor.remove("type");
             editor.apply();
