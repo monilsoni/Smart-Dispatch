@@ -403,14 +403,47 @@ public class VehicleMapActivity extends AppCompatActivity implements
                 Log.d(TAG, "addMapMarkers: location: " + user.getGeoPoint().toString());
                 try {
                     String snippet = "";
-                    if (user.getUser_id().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                        snippet = "This is you";
-                    } else {
-                        snippet = "Determine route to " + user.getEmail() + "?";
+                    int avatar = R.drawable.ic_launcher_background;
+
+                    switch (user.getType()){
+
+                        case "requester": {
+                            snippet = "This is you";
+                            switch (((Requester)user).getSex()){
+                                case "Male": {
+                                    avatar = R.mipmap.ic_boy;
+                                    break;
+                                }
+
+                                case "Female": {
+                                    avatar = R.mipmap.ic_girl;
+                                    break;
+                                }
+
+                                case "Other": {
+                                    avatar = R.mipmap.ic_other;
+                                    break;
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "hospital": {
+                            snippet = "This is the Hospital";
+                            avatar = R.mipmap.ic_hospital;
+
+                            break;
+                        }
+
+                        case "vehicle":{
+                            snippet = "This is the Vehicle";
+                            avatar = R.mipmap.ic_vehicle;
+
+                            break;
+                        }
+
                     }
-
-                    int avatar = R.drawable.ic_launcher_background; // set the default avatar
-
                     RequestClusterMarker newClusterMarker = new RequestClusterMarker(
                             new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),
                             user.getEmail(),

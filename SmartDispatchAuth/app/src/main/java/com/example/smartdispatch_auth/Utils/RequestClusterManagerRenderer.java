@@ -30,8 +30,7 @@ public class RequestClusterManagerRenderer extends DefaultClusterRenderer<Reques
         markerHeight = (int) context.getResources().getDimension(R.dimen.custom_marker_image);
         markerWidth = (int) context.getResources().getDimension(R.dimen.custom_marker_image);
         imageView.setLayoutParams(new ViewGroup.LayoutParams(markerWidth, markerHeight));
-        int padding = (int) context.getResources().getDimension(R.dimen.custom_marker_padding);
-        imageView.setPadding(padding, padding, padding, padding);
+        imageView.setPadding(0,0,0,0);
         iconGenerator.setContentView(imageView);
 
     }

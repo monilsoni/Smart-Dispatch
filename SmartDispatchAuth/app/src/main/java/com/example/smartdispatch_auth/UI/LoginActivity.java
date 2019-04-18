@@ -56,6 +56,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Intent intent = getIntent();
         authenticator = intent.getStringExtra("authenticator");
+        if(authenticator.equals("admin"))
+            findViewById(R.id.link_register).setVisibility(View.GONE);
+
         setupFirebaseAuth();
         findViewById(R.id.email_log_in_button).setOnClickListener(this);
         findViewById(R.id.link_register).setOnClickListener(this);

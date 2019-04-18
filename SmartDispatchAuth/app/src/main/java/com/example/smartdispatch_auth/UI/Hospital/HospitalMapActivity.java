@@ -64,16 +64,14 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
     // widgets
     private MapView mMapView;
-    private boolean vehicle_reached = false;
 
     // vars
     private ArrayList<User> mUserLocations = new ArrayList<>();
     private GoogleMap mGoogleMap;
-
+    private boolean vehicle_reached = false;
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private GeoApiContext mGeoApiContext = null;
-    private boolean toggle = true;
 
     // Cluster Manager and Cluster Manager Renderer are actually responsible for putting the markers on the map
     private ClusterManager mClusterManager;
@@ -114,6 +112,8 @@ public class HospitalMapActivity extends AppCompatActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             vehicle_reached = true;
+
+            // todo check if current activity is running
             setCameraView();
         }
 
@@ -387,27 +387,41 @@ public class HospitalMapActivity extends AppCompatActivity implements
 
                         case "requester": {
                             snippet = "This is you";
-                            avatar = R.drawable.ic_launcher_background;
+                            switch (((Requester)user).getSex()){
+                                case "Male": {
+                                    avatar = R.mipmap.ic_boy;
+                                    break;
+                                }
+
+                                case "Female": {
+                                    avatar = R.mipmap.ic_girl;
+                                    break;
+                                }
+
+                                case "Other": {
+                                    avatar = R.mipmap.ic_other;
+                                    break;
+                                }
+                            }
 
                             break;
                         }
 
                         case "hospital": {
                             snippet = "This is the Hospital";
-                            avatar = R.drawable.ic_launcher_background;
+                            avatar = R.mipmap.ic_hospital;
 
                             break;
                         }
 
                         case "vehicle":{
                             snippet = "This is the Vehicle";
-                            avatar = R.drawable.ic_launcher_background;
+                            avatar = R.mipmap.ic_vehicle;
 
                             break;
                         }
 
                     }
-
 
                     RequestClusterMarker newClusterMarker = new RequestClusterMarker(
                             new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude()),

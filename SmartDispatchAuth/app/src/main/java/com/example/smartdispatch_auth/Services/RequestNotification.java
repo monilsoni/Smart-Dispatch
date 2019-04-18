@@ -11,17 +11,9 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.View;
 
-import com.example.smartdispatch_auth.Models.Hospital;
-import com.example.smartdispatch_auth.Models.Requester;
-import com.example.smartdispatch_auth.Models.Vehicle;
 import com.example.smartdispatch_auth.R;
-import com.example.smartdispatch_auth.UI.EntryPoint;
-import com.example.smartdispatch_auth.UI.LoginActivity;
-import com.example.smartdispatch_auth.UserClient;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;

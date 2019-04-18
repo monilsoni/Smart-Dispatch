@@ -52,7 +52,6 @@ import static com.example.smartdispatch_auth.Constants.PERMISSIONS_REQUEST_ENABL
 
 public class HospitalMainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    // todo: add internet check
     private static final String TAG = "HospitalMainActivity";
     IntentFilter filter;
     ProgressDialog progress;
@@ -76,7 +75,6 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
         progress = new ProgressDialog(this);
         progress.setMessage("Loading your data");
         progress.setCancelable(false);
-
 
         filter = new IntentFilter();
         filter.addAction(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
@@ -317,30 +315,34 @@ public class HospitalMainActivity extends AppCompatActivity implements View.OnCl
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.current_request) {
-            Intent intent = new Intent(HospitalMainActivity.this, HospitalCurrentRequestActivity.class);
-            startActivity(intent);
-        } else if (v.getId() == R.id.sign_out) {
 
-            FirebaseAuth.getInstance().signOut();
-            SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
-            editor.remove("type");
-            editor.apply();
-
-            if (isLocationServiceRunning()) {
-                Intent serviceIntent = new Intent(this, LocationService.class);
-                stopService(serviceIntent);
+        switch (v.getId()){
+            case R.id.current_request: {
+                Intent intent = new Intent(HospitalMainActivity.this, HospitalCurrentRequestActivity.class);
+                startActivity(intent);
+                break;
             }
 
-            ((UserClient) getApplicationContext()).setHospital(null);
-            ((UserClient) getApplicationContext()).setRequest(null);
+            case R.id.sign_out: {
+                FirebaseAuth.getInstance().signOut();
+                SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                editor.remove("type");
+                editor.apply();
 
-            Intent intent = new Intent(HospitalMainActivity.this, EntryPoint.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(HospitalMainActivity.this, "Youzaa", Toast.LENGTH_SHORT).show();
+                if (isLocationServiceRunning()) {
+                    Intent serviceIntent = new Intent(this, LocationService.class);
+                    stopService(serviceIntent);
+                }
+
+                ((UserClient) getApplicationContext()).setHospital(null);
+                ((UserClient) getApplicationContext()).setRequest(null);
+
+                Intent intent = new Intent(HospitalMainActivity.this, EntryPoint.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                break;
+            }
         }
 
     }
