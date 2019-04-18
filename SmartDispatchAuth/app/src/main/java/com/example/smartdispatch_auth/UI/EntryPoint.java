@@ -17,10 +17,12 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry_point);
 
+
         findViewById(R.id.user_login_button).setOnClickListener(this);
         findViewById(R.id.vehicle_login_button).setOnClickListener(this);
         findViewById(R.id.hospital_login_button).setOnClickListener(this);
         findViewById(R.id.admin_login_button).setOnClickListener(this);
+        findViewById(R.id.about_us).setOnClickListener(this);
 
         // Check if the user is already authenticated in the system & redirect accordingly
 
@@ -70,6 +72,11 @@ public class EntryPoint extends AppCompatActivity implements View.OnClickListene
             case R.id.admin_login_button: {
                 intent.putExtra("authenticator", "admin");
                 startActivity(intent);
+                break;
+            }
+            case R.id.about_us: {
+                AboutUs aboutUs = new AboutUs();
+                aboutUs.show( getSupportFragmentManager(), "About Us" );
                 break;
             }
         }

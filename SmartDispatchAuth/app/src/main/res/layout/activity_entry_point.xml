@@ -96,6 +96,19 @@
     </ScrollView>
 
 
+    <Button
+        android:id="@+id/about_us"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:background="@color/ColorSecondary"
+        android:drawableStart="@drawable/ic_info_outline_black_24dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="50dp"
+        android:paddingLeft="10dp"/>
+
+
+
 
 
     <RelativeLayout
