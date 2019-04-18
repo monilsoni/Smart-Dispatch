@@ -346,7 +346,7 @@ public class RequesterMainActivity extends AppCompatActivity implements View.OnC
 
         // todo: modify the card to have two parts. then update the number part from here
 
-        mWelcomeText.setText("Welcome to SmartDispatch " + mRequester.getEmail().substring(0, mRequester.getEmail().indexOf("@")));
+        mWelcomeText.setText("Welcome to SmartDispatch " + mRequester.getName());
         mAadharText.setText("Aadhar Number: " + mRequester.getAadhar_number());
         mPhoneText.setText("Phone Number: " + mRequester.getPhone_number());
         progress.dismiss();

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartdispatch_auth.R;
@@ -62,6 +63,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         setupFirebaseAuth();
         findViewById(R.id.email_log_in_button).setOnClickListener(this);
         findViewById(R.id.link_register).setOnClickListener(this);
+
+        TextView textView = findViewById(R.id.loginType);
+
+        if(authenticator.equals("requester")) {
+            textView.setText("LOGIN AS A REQUESTER");
+        }
+        else if(authenticator.equals("vehicle")){
+            textView.setText("LOGIN AS A VEHICLE");
+        }
+        else if(authenticator.equals("hospital")){
+            textView.setText("LOGIN AS A HOSPITAL");
+        }
+        else
+            textView.setText("LOGIN AS AN ADMIN");
     }
 
     /* Override Methods */
